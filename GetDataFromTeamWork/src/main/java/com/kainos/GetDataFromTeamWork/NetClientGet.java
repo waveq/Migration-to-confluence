@@ -1,10 +1,11 @@
+package com.kainos.GetDataFromTeamWork;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import org.apache.commons.codec.binary.Base64;
 
 public class NetClientGet {
@@ -18,9 +19,6 @@ public class NetClientGet {
 			String password = "X";
 
 			String userPassword = username + ":" + password;
-			// String encoding = new
-			// sun.misc.BASE64Encoder().encode(userPassword
-			// .getBytes());
 
 			String encoding = "Basic "
 					+ new String(Base64.encodeBase64(userPassword
