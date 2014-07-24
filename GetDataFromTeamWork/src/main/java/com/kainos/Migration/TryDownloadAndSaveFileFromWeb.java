@@ -1,4 +1,4 @@
-package com.kainos.GetDataFromTeamWork;
+package com.kainos.Migration;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

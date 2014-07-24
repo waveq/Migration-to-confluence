@@ -1,4 +1,4 @@
-package com.kainos.GetDataFromTeamWork;
+package com.kainos.Migration;
 
 import java.io.BufferedReader;
 import java.io.File;
