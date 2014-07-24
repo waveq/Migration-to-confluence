@@ -42,33 +42,35 @@ public class TeamworkDownloader {
 			JSONObject categoriesMainObject = getAllCategoriesFromProject(url, apiToken, singleProject.getString("id"));
 			JSONArray categoriesArray = (JSONArray) categoriesMainObject.get("categories");
 
-			Iterator j = categoriesArray.iterator();
-			while (j.hasNext()) {
-				JSONObject rootCategory = (JSONObject) j.next();
-				getCategoriesAndFiles(rootCategory);
-		
+			getCategoriesAndFiles(singleProject.getString("id"), "", categoriesArray);
+		}
+	}
+	
+	public void getCategoriesAndFiles (String projectId, String parentId, JSONArray categoriesArray) {
+		Iterator i = categoriesArray.iterator();
+		while(i.hasNext()) {
+			JSONObject category = (JSONObject) i.next();
+			if(category.get("parent-id").equals(parentId)) {
+				System.out.println("##KATEGORIA " + category.get("name"));
+				getFilesFromCategory(projectId, category.getString("id"));
+				getCategoriesAndFiles(projectId, category.getString("id"), categoriesArray);
 			}
 		}
 	}
 	
-	public void getCategoriesAndFiles (JSONObject category) {
-		JSONObject singleCategory = (JSONObject) j.next();
-		System.out.println("##KATEGORIA " + singleCategory.get("name"));
-		
-		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(url, apiToken, singleProject.getString("id"));
+	public void getFilesFromCategory(String projectId, String categoryId) {
+		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(url, apiToken, projectId);
 		JSONObject project = (JSONObject) filesMainObject.get("project");
 		JSONArray filesArray = (JSONArray) project.get("files");
 
 		Iterator k = filesArray.iterator();
 		while (k.hasNext()) {
 			JSONObject singleFile = (JSONObject) k.next();
-			if (singleFile.get("category-id").equals(singleCategory.get("id")))
+			if (singleFile.get("category-id").equals(categoryId))
 				System.out.println("PLIK: " + singleFile.get("name"));
 		}
-		
 	}
 	
-
 	public JSONObject getAllCategoriesFromProject(String urlS, String apiToken, String projectId) {
 		String credentials = apiToken + ":X";
 		return downloadJson(urlS, "/projects/" + projectId + "/fileCategories.json", credentials);
