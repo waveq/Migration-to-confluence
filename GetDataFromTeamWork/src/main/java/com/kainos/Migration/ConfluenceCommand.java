@@ -3,7 +3,7 @@ package com.kainos.Migration;
 public class ConfluenceCommand {
 
 	// deleted comment parameter
-	private static final String AddSpace = "confluence --action addSpace --space \"%s\" --title \"$s\" ";
+	private static final String AddSpace = "confluence --action addSpace --space \"%s\" --title \"%s\" ";
 	private static final String AddPage = "confluence --action addPage --space \"%s\" --title \"%s\" --parent \"Home\"";
 	private static final String AddNastedPage = "confluence --action addPage --space \"%s\" --title \"%s\" --parent \"%s\"";
 	/*
@@ -14,6 +14,7 @@ public class ConfluenceCommand {
 	private static final String AddAttatchmentToPage = "confluence --action addAttachment --space \"%s\" --title \"%s\" --file \"%s\"";
 
 	public static String AddSpace(String spaceName) {
+		System.out.println(String.format(AddSpace, spaceName, spaceName));
 		return String.format(AddSpace, spaceName, spaceName);
 	}
 

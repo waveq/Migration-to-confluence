@@ -7,8 +7,8 @@ set dirPath=%dirPath:\=/%
 rem remove blank at end of string
 set dirPath=%dirPath:~0,-1%
 
-set server=https://delspam8.atlassian.net/wiki/
-set username=delspam8
+set server=https://traineetest.atlassian.net/wiki/
+set username=nynon
 set password=tajnehaslo
 
 rem - Customize for your installation, for instance you might want to add default parameters like the following:

@@ -17,16 +17,20 @@ import org.apache.commons.codec.binary.Base64;
 public class TeamworkDownloader {
 	private String apiToken;
 	private String url;
+	private UploadFiles uf;
+	
 
 	public TeamworkDownloader(String apiToken, String url) {
 		super();
-		this.apiToken = "shark807dry";
-		this.url = url = "https://traineetest.teamwork.com";
+		this.apiToken = apiToken;
+		this.url = url;
 		
-		getProjectId(getAllProjects(this.url, this.apiToken));
+		uf = new UploadFiles();
+		
+		printTree(getAllProjects(this.url, this.apiToken));
 	}
 	
-	public void getProjectId(String json) {
+	public void printTree(String json) {
 		JSONObject mainJsonObject = (JSONObject) JSONSerializer.toJSON(json);
 		
 		JSONArray array = (JSONArray) mainJsonObject.get("projects");
@@ -35,17 +39,18 @@ public class TeamworkDownloader {
 		while (i.hasNext()) {
 			JSONObject innerObj = (JSONObject) i.next();
 			System.out.println("#PROJEKT: " + innerObj.get("id"));
-			JSONObject projectCategoriesJson = (JSONObject) JSONSerializer.toJSON(getAllCategoriesFromProject(this.url, this.apiToken, innerObj.getString("id")));
+			System.out.println("projektname" +innerObj.get("name"));
+			uf.CreateSpace(innerObj.get("name").toString());
+			JSONObject projectCategoriesJson = (JSONObject) JSONSerializer.toJSON(getAllCategoriesFromProject(url, apiToken, innerObj.getString("id")));
 			JSONArray categories = (JSONArray) projectCategoriesJson.get("categories");
 			
 //			####
 			Iterator j = categories.iterator();
 			while(j.hasNext()) {
 				JSONObject singleCategory = (JSONObject) j.next();
-				if(singleCategory.get("parent-id").equals("")) {
 					
 					System.out.println("##KATEGORIA " + singleCategory.get("name"));
-					JSONObject jsonFiles = (JSONObject) JSONSerializer.toJSON(getAllFilesFromProject(this.url, this.apiToken, innerObj.getString("id")));
+					JSONObject jsonFiles = (JSONObject) JSONSerializer.toJSON(getAllFilesFromProject(url, apiToken, innerObj.getString("id")));
 					JSONObject project = (JSONObject) jsonFiles.get("project");
 					JSONArray arrayFiles = (JSONArray) project.get("files");
 					
@@ -55,7 +60,6 @@ public class TeamworkDownloader {
 						if(singleFile.get("category-id").equals(singleCategory.get("id")))
 							System.out.println("PLIK: " + singleFile.get("name"));
 					}
-				}
 			}
 		}
 	}
