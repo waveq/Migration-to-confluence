@@ -17,14 +17,14 @@ import org.apache.commons.codec.binary.Base64;
 public class TeamworkDownloader {
 	private String apiToken;
 	private String url;
-	private UploadFiles uf;
+	private ConfluenceManager uf;
 
 	public TeamworkDownloader(String apiToken, String url) {
 		super();
 		this.apiToken = apiToken;
 		this.url = url;
 
-		uf = new UploadFiles();
+		uf = new ConfluenceManager();
 
 		printTree(getAllProjects(url, apiToken));
 	}

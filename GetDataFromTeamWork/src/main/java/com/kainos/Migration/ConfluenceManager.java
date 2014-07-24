@@ -5,23 +5,27 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class UploadFiles {
+public class ConfluenceManager {
 
-	File file;
-	String dirPath;
+	private File file;
+	private String dirPath;
 
-	public UploadFiles() {
+	public ConfluenceManager() {
 		file = new File("./confluence-cli-4.0.0-SNAPSHOT/confluence.bat");
 		dirPath = file.getAbsoluteFile().getAbsolutePath();
 	}
 
+	/**
+	 * Wrapper method. Run appropriate command
+	 * @param cmd String contains Confluence command
+	 */
 	private void ExecCmd(String cmd) {
 		try {
 			System.out.println(dirPath);
 			Process p = Runtime.getRuntime().exec("cmd.exe /c " + dirPath + cmd);
 			p.waitFor();
 
-			// this code can be deleted - only print some result from cmd
+			// print some result from cmd
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "", sb = "";
 			while ((line = reader.readLine()) != null) {
@@ -38,18 +42,39 @@ public class UploadFiles {
 
 	}
 
+	/**
+	 * Create Space in Confluence
+	 * @param SpaceName
+	 */
 	public void CreateSpace(String SpaceName) {
 		ExecCmd(ConfluenceCommand.AddSpace(SpaceName));
 	}
 
+	/**
+	 * Create Page in Confluence
+	 * @param SpaceName
+	 * @param PageName
+	 */
 	public void CreatePage(String SpaceName, String PageName) {
 		ExecCmd(ConfluenceCommand.AddPage(SpaceName, PageName));
 	}
 
+	/**
+	 * Create Nested Page in Confluence
+	 * @param SpaceName
+	 * @param PageName
+	 * @param ParentPageName
+	 */
 	public void CreateNestedPage(String SpaceName, String PageName, String ParentPageName) {
 		ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, ParentPageName));
 	}
 	
+	/**
+	 * Add file to selected Page. If you want add file to main space set toPageName=@home
+	 * @param spaceName
+	 * @param toPageName
+	 * @param pathToFile
+	 */
 	public void AddAttatchmentToPage(String spaceName, String toPageName, String pathToFile) {
 		ExecCmd(ConfluenceCommand.AddAttatchmentToPage(spaceName, toPageName, pathToFile));
 	}
