@@ -15,19 +15,20 @@ public class Manager {
 	String teamworkApiToken;
 	String teamworkUrl;
 	TeamworkDownloader td;
-	Properties prop = new Properties();
-	InputStream input = null;
+	private Properties prop = new Properties();
+	InputStream input;
 
 	public Manager() {
-		getDataToConnectTeamwork();
+		GetAndSetRequiredProperties();
 		td = new TeamworkDownloader(teamworkApiToken, teamworkUrl);
 	}
-	
-	public void Migrate(){
-		//zmienna = td.download
-		
-	}
 
+	/**
+	 * Set appropriate properties in .bat file
+	 * @param ConfluenceServer
+	 * @param ConfluenceUserName
+	 * @param ConfluencePassword
+	 */
 	private void SetProperiesInConfluenceFiles(String ConfluenceServer, String ConfluenceUserName,
 			String ConfluencePassword) {
 
@@ -43,9 +44,9 @@ public class Manager {
 			while ((line = br.readLine()) != null) {
 				if (line.contains("set server="))
 					line = line.replace("set server=", "set server=" + ConfluenceServer);
-				if (line.contains("set username="))
+				else if (line.contains("set username="))
 					line = line.replace("set username=", "set username=" + ConfluenceUserName);
-				if (line.contains("set password="))
+				else if (line.contains("set password="))
 					line = line.replace("set password=", "set password=" + ConfluencePassword);
 				bw.write(line + "\n");
 			}
@@ -56,13 +57,13 @@ public class Manager {
 				if (br != null)
 					br.close();
 			} catch (IOException e) {
-				//
+				e.printStackTrace();
 			}
 			try {
 				if (bw != null)
 					bw.close();
 			} catch (IOException e) {
-				//
+				e.printStackTrace();
 			}
 		}
 		// Once everything is complete, delete old file..
@@ -75,24 +76,13 @@ public class Manager {
 
 	}
 
-	public void getDataToConnectTeamwork() {
-		/*
-		 * Scanner consoleScanner = new Scanner(System.in);
-		 * 
-		 * System.out.println("Api key to Teamwork: "); teamworkApiToken =
-		 * consoleScanner.nextLine();
-		 * 
-		 * System.out.println(
-		 * "URL to your teamwork (e.g. https://example.teamwork.com): ");
-		 * teamworkUrl = consoleScanner.nextLine();
-		 * 
-		 * consoleScanner.close();
-		 */
+	/**
+	 * Initialize properties from file config.properties and set it in properties and .bat file
+	 */
+	public void GetAndSetRequiredProperties() {
 		try {
-
 			input = new FileInputStream("config.properties");
 			prop.load(input);
-
 			teamworkApiToken = prop.getProperty("apikey");
 			teamworkUrl = prop.getProperty("addres");
 			SetProperiesInConfluenceFiles(prop.getProperty("server"), prop.getProperty("user"), prop.getProperty("password"));
