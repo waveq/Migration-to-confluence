@@ -49,4 +49,8 @@ public class UploadFiles {
 	public void CreateNestedPage(String SpaceName, String PageName, String ParentPageName) {
 		ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, ParentPageName));
 	}
+	
+	public void AddAttatchmentToPage(String spaceName, String toPageName, String pathToFile) {
+		ExecCmd(ConfluenceCommand.AddAttatchmentToPage(spaceName, toPageName, pathToFile));
+	}
 }
