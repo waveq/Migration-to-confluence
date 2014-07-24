@@ -13,7 +13,6 @@ import org.apache.commons.codec.binary.Base64;
 public class NetClientGet {
 
 	public static void main(String[] args) {
-
 		try {
 
 			String username = "shark807dry";

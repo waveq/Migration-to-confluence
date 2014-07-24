@@ -1,41 +1,89 @@
 package com.kainos.Migration;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
+import org.apache.commons.codec.binary.Base64;
+
 public class TryDownloadAndSaveFileFromWeb {
 
 	public static void main(String[] args) {
-		URL website;
-		FileOutputStream fos;
 		try {
-			website = new URL("https://traineetest.teamwork.com/?action=viewFile&sd=2257b31b-6e94-3279434B428DDB5FA5C07490ABB79A65E7A8BE4AB6300BA894416166910E7BB0146EE31E9ADDD8837296153FCB357277");
-			ReadableByteChannel rbc;
-			System.out.println("Open webpage");
-			long start = System.currentTimeMillis();
-			rbc = Channels.newChannel(website.openStream());
-			System.out.println("Before download");
-			long middle = System.currentTimeMillis();
-			fos = new FileOutputStream("temp/jre-8u11-windows-x64.exe");
-			
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			System.out.println("After download");
-			long after = System.currentTimeMillis();
-			
-			System.out.println("Middle - start = "+(double)(middle-start)/1000);
-			System.out.println("After - start = "+(double)(after-start)/1000);
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
+
+			String username = "shark807dry";
+			String password = "X";
+
+			String userPassword = username + ":" + password;
+
+			String encoding = "Basic "
+					+ new String(Base64.encodeBase64(userPassword
+							.getBytes("UTF-8")), "UTF-8");
+
+			URL url = new URL(
+					"https://traineetest.teamwork.com/projects/69383/files.json");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Authorization", "Basic " + encoding);
+			conn.setRequestProperty("Accept", "application/json");
+
+			if (conn.getResponseCode() != 200) {
+				throw new RuntimeException("Failed : HTTP error code : "
+						+ conn.getResponseCode());
+			}
+
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					(conn.getInputStream())));
+
+			String output;
+			System.out.println("Output from Server .... \n");
+			while ((output = br.readLine()) != null) {
+				System.out.println(output);
+			}
+
+			conn.disconnect();
+
+			String[] cmd = { "cmd.exe", "/k", "echo \" Ala ma kota\" " };
+
+			File file = new File(
+					"./confluence-cli-4.0.0-SNAPSHOT/confluence.bat");
+			String dirPath = file.getAbsoluteFile().getAbsolutePath();
+			System.out.println(dirPath);
+
+			Process p = Runtime
+					.getRuntime()
+					.exec("cmd.exe /c "
+							+ dirPath
+							+ " --action addSpace --space \"mojtestEclipse2\" --title \"mojtestEclipse2\" --comment \"GINT test: cliexamplesEclipse\"");
+			p.waitFor();
+
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					p.getInputStream()));
+
+			String line = "", sb = "";
+			while ((line = reader.readLine()) != null) {
+				sb += line + "\n";
+			}
+			System.out.print(sb);
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+
 			e.printStackTrace();
 
+		} catch (IOException e) {
+
+			e.printStackTrace();
+
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}
