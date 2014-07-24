@@ -18,77 +18,78 @@ public class TeamworkDownloader {
 	private String apiToken;
 	private String url;
 	private UploadFiles uf;
-	
 
 	public TeamworkDownloader(String apiToken, String url) {
 		super();
 		this.apiToken = apiToken;
 		this.url = url;
-		
+
 		uf = new UploadFiles();
-		
-		printTree(getAllProjects(this.url, this.apiToken));
+
+		printTree(getAllProjects(url, apiToken));
 	}
-	
-	public void printTree(String json) {
-		JSONObject mainJsonObject = (JSONObject) JSONSerializer.toJSON(json);
-		
-		JSONArray array = (JSONArray) mainJsonObject.get("projects");
+
+	public void printTree(JSONObject mainJson) {
+
+		JSONArray array = (JSONArray) mainJson.get("projects");
 
 		Iterator i = array.iterator();
 		while (i.hasNext()) {
-			JSONObject innerObj = (JSONObject) i.next();
-			System.out.println("#PROJEKT: " + innerObj.get("id"));
-			System.out.println("projektname" +innerObj.get("name"));
-			uf.CreateSpace(innerObj.get("name").toString());
-			JSONObject projectCategoriesJson = (JSONObject) JSONSerializer.toJSON(getAllCategoriesFromProject(url, apiToken, innerObj.getString("id")));
-			JSONArray categories = (JSONArray) projectCategoriesJson.get("categories");
+			JSONObject singleProject = (JSONObject) i.next();
+			System.out.println("#PROJEKT: " + singleProject.get("name"));
+//			uf.CreateSpace(innerObj.get("name").toString());
 			
-//			####
-			Iterator j = categories.iterator();
-			while(j.hasNext()) {
-				JSONObject singleCategory = (JSONObject) j.next();
-					
-					System.out.println("##KATEGORIA " + singleCategory.get("name"));
-					JSONObject jsonFiles = (JSONObject) JSONSerializer.toJSON(getAllFilesFromProject(url, apiToken, innerObj.getString("id")));
-					JSONObject project = (JSONObject) jsonFiles.get("project");
-					JSONArray arrayFiles = (JSONArray) project.get("files");
-					
-					Iterator k = arrayFiles.iterator();
-					while(k.hasNext()) {
-						JSONObject singleFile = (JSONObject) k.next();
-						if(singleFile.get("category-id").equals(singleCategory.get("id")))
-							System.out.println("PLIK: " + singleFile.get("name"));
-					}
+			JSONObject categoriesMainObject = getAllCategoriesFromProject(url, apiToken, singleProject.getString("id"));
+			JSONArray categoriesArray = (JSONArray) categoriesMainObject.get("categories");
+
+			Iterator j = categoriesArray.iterator();
+			while (j.hasNext()) {
+				JSONObject rootCategory = (JSONObject) j.next();
+				getCategoriesAndFiles(rootCategory);
+		
 			}
 		}
 	}
 	
-	
-	
-	public String getAllCategoriesFromProject(String urlS, String apiToken, String projectId) {
-		String credentials = apiToken + ":X";
-		return downloadJson(urlS, "/projects/"+projectId+"/fileCategories.json", credentials);
+	public void getCategoriesAndFiles (JSONObject category) {
+		JSONObject singleCategory = (JSONObject) j.next();
+		System.out.println("##KATEGORIA " + singleCategory.get("name"));
+		
+		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(url, apiToken, singleProject.getString("id"));
+		JSONObject project = (JSONObject) filesMainObject.get("project");
+		JSONArray filesArray = (JSONArray) project.get("files");
+
+		Iterator k = filesArray.iterator();
+		while (k.hasNext()) {
+			JSONObject singleFile = (JSONObject) k.next();
+			if (singleFile.get("category-id").equals(singleCategory.get("id")))
+				System.out.println("PLIK: " + singleFile.get("name"));
+		}
+		
 	}
 	
-	public String getAllFilesFromProject(String urlS, String apiToken, String projectId) { 
+
+	public JSONObject getAllCategoriesFromProject(String urlS, String apiToken, String projectId) {
 		String credentials = apiToken + ":X";
-		return downloadJson(urlS, "/projects/"+projectId+"/files.json", credentials);
+		return downloadJson(urlS, "/projects/" + projectId + "/fileCategories.json", credentials);
 	}
 
+	public JSONObject getAllFilesFromProject(String urlS, String apiToken, String projectId) {
+		String credentials = apiToken + ":X";
+		return downloadJson(urlS, "/projects/" + projectId + "/files.json", credentials);
+	}
 
-	public String getAllProjects(String urlS, String apiToken) {
+	public JSONObject getAllProjects(String urlS, String apiToken) {
 		String credentials = apiToken + ":X";
 		return downloadJson(urlS, "/projects.json", credentials);
 	}
 
-	public String downloadJson(String urlBeginning, String urlEnding,
-			String credentials) {
-		String json = "";
+	public JSONObject downloadJson(String urlBeginning, String urlEnding, String credentials) {
+		String jsonString = "";
+		JSONObject json;
 		try {
 			String encoding = "Basic "
-					+ new String(Base64.encodeBase64(credentials
-							.getBytes("UTF-8")), "UTF-8");
+					+ new String(Base64.encodeBase64(credentials.getBytes("UTF-8")), "UTF-8");
 			URL url = new URL(urlBeginning + urlEnding);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
@@ -96,22 +97,20 @@ public class TeamworkDownloader {
 			conn.setRequestProperty("Accept", "application/json");
 
 			if (conn.getResponseCode() != 200) {
-				throw new RuntimeException("Failed : HTTP error code : "
-						+ conn.getResponseCode());
+				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
 			}
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					(conn.getInputStream())));
+			BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
 
-			json = br.readLine();
+			jsonString = br.readLine();
 			conn.disconnect();
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		json = (JSONObject) JSONSerializer.toJSON(jsonString);
 		return json;
 	}
-	
 
 }
