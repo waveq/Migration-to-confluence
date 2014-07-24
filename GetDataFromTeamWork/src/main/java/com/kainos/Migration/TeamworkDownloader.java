@@ -48,6 +48,10 @@ public class TeamworkDownloader {
 	
 	public void getCategoriesAndFiles (String projectId, String parentId, JSONArray categoriesArray) {
 		Iterator i = categoriesArray.iterator();
+		
+		if(parentId.equals("")) {
+			getFilesFromCategory(projectId, "");
+		}
 		while(i.hasNext()) {
 			JSONObject category = (JSONObject) i.next();
 			if(category.get("parent-id").equals(parentId)) {
