@@ -6,7 +6,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 
@@ -18,20 +20,66 @@ public class TeamworkDownloader {
 
 	public TeamworkDownloader(String apiToken, String url) {
 		super();
-		this.apiToken = apiToken;
-		this.url = url;
+		this.apiToken = "shark807dry";
+		this.url = url = "https://traineetest.teamwork.com";
 		
-		System.out.println(getAllProjects("https://traineetest.teamwork.com", "shark807dry"));
-		JSONObject json = (JSONObject) JSONSerializer.toJSON( getAllProjects("https://traineetest.teamwork.com", "shark807dry") );  
-		int altitude = json.getInt( "altitude" );
+		getProjectId(getAllProjects(this.url, this.apiToken));
 	}
+	
+	public void getProjectId(String json) {
+		JSONObject mainJsonObject = (JSONObject) JSONSerializer.toJSON(json);
+		
+		JSONArray array = (JSONArray) mainJsonObject.get("projects");
+
+		Iterator i = array.iterator();
+		while (i.hasNext()) {
+			JSONObject innerObj = (JSONObject) i.next();
+			System.out.println("#PROJEKT: " + innerObj.get("id"));
+			JSONObject projectCategoriesJson = (JSONObject) JSONSerializer.toJSON(getAllCategoriesFromProject(this.url, this.apiToken, innerObj.getString("id")));
+			JSONArray categories = (JSONArray) projectCategoriesJson.get("categories");
+			
+//			####
+			Iterator j = categories.iterator();
+			while(j.hasNext()) {
+				JSONObject singleCategory = (JSONObject) j.next();
+				if(singleCategory.get("parent-id").equals("")) {
+					
+					System.out.println("##KATEGORIA " + singleCategory.get("name"));
+					JSONObject jsonFiles = (JSONObject) JSONSerializer.toJSON(getAllFilesFromProject(this.url, this.apiToken, innerObj.getString("id")));
+					JSONObject project = (JSONObject) jsonFiles.get("project");
+					JSONArray arrayFiles = (JSONArray) project.get("files");
+					
+					Iterator k = arrayFiles.iterator();
+					while(k.hasNext()) {
+						JSONObject singleFile = (JSONObject) k.next();
+						if(singleFile.get("category-id").equals(singleCategory.get("id")))
+							System.out.println("PLIK: " + singleFile.get("name"));
+					}
+				}
+			}
+		}
+	}
+	
+	
+	
+	public String getAllCategoriesFromProject(String urlS, String apiToken, String projectId) {
+		String credentials = apiToken + ":X";
+		return downloadJson(urlS, "/projects/"+projectId+"/fileCategories.json", credentials);
+	}
+	
+	public String getAllFilesFromProject(String urlS, String apiToken, String projectId) { 
+		String credentials = apiToken + ":X";
+		return downloadJson(urlS, "/projects/"+projectId+"/files.json", credentials);
+	}
+
 
 	public String getAllProjects(String urlS, String apiToken) {
 		String credentials = apiToken + ":X";
-		return getProjectListJson(urlS, "/projects.json", credentials);
+		return downloadJson(urlS, "/projects.json", credentials);
 	}
-	
-	public String getProjectListJson(String urlBeginning, String urlEnding, String credentials) {
+
+	public String downloadJson(String urlBeginning, String urlEnding,
+			String credentials) {
 		String json = "";
 		try {
 			String encoding = "Basic "
@@ -51,8 +99,6 @@ public class TeamworkDownloader {
 			BufferedReader br = new BufferedReader(new InputStreamReader(
 					(conn.getInputStream())));
 
-			
-			System.out.println("Output from Server .... \n");
 			json = br.readLine();
 			conn.disconnect();
 		} catch (MalformedURLException e) {
@@ -62,5 +108,6 @@ public class TeamworkDownloader {
 		}
 		return json;
 	}
+	
 
 }
