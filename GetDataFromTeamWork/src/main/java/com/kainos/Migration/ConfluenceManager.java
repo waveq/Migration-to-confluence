@@ -21,7 +21,6 @@ public class ConfluenceManager {
 	 */
 	private void ExecCmd(String cmd) {
 		try {
-			System.out.println(dirPath);
 			Process p = Runtime.getRuntime().exec("cmd.exe /c " + dirPath + cmd);
 			p.waitFor();
 
