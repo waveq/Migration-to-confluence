@@ -17,14 +17,16 @@ import org.apache.commons.codec.binary.Base64;
 public class TeamworkDownloader {
 	private String apiToken;
 	private String url;
-	private ConfluenceManager uf;
+	private ConfluenceManager cm;
+	private DownloadFileFromTW dfftw;
 
 	public TeamworkDownloader(String apiToken, String url) {
 		super();
 		this.apiToken = apiToken;
 		this.url = url;
 
-		uf = new ConfluenceManager();
+		dfftw = new DownloadFileFromTW();
+		cm = new ConfluenceManager();
 
 		printTree(getAllProjects(url, apiToken));
 	}
@@ -37,57 +39,77 @@ public class TeamworkDownloader {
 		while (i.hasNext()) {
 			JSONObject singleProject = (JSONObject) i.next();
 			System.out.println("#PROJEKT: " + singleProject.get("name"));
-//			uf.CreateSpace(innerObj.get("name").toString());
-			
-			JSONObject categoriesMainObject = getAllCategoriesFromProject(url, apiToken, singleProject.getString("id"));
+			 cm.CreateSpace(singleProject.get("name").toString());
+
+			JSONObject categoriesMainObject = getAllCategoriesFromProject(url, apiToken,
+					singleProject.getString("id"));
 			JSONArray categoriesArray = (JSONArray) categoriesMainObject.get("categories");
 
-			getCategoriesAndFiles(singleProject.getString("id"), "", categoriesArray);
+			getCategoriesAndFiles(singleProject, "", categoriesArray);
 		}
 	}
-	
-	public void getCategoriesAndFiles (String projectId, String parentId, JSONArray categoriesArray) {
+
+	public void getCategoriesAndFiles(JSONObject project, String parentId, JSONArray categoriesArray) {
 		Iterator i = categoriesArray.iterator();
-		
-		if(parentId.equals("")) {
-			getFilesFromCategory(projectId, "");
-		}
-		while(i.hasNext()) {
+
+
+		while (i.hasNext()) {
 			JSONObject category = (JSONObject) i.next();
-			if(category.get("parent-id").equals(parentId)) {
+			if (parentId.equals("")) {
+				cm.CreatePage(project.getString("name"), category.getString("name"), parentId);
+				getFilesFromCategory(project, null);
+			}
+			else if (category.get("parent-id").equals(parentId)) {
 				System.out.println("##KATEGORIA " + category.get("name"));
-				getFilesFromCategory(projectId, category.getString("id"));
-				getCategoriesAndFiles(projectId, category.getString("id"), categoriesArray);
+				cm.CreatePage(project.getString("name"), category.getString("name"), parentId);
+				getFilesFromCategory(project, category);
+				getCategoriesAndFiles(project, category.getString("id"), categoriesArray);
 			}
 		}
 	}
-	
-	public void getFilesFromCategory(String projectId, String categoryId) {
-		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(url, apiToken, projectId);
-		JSONObject project = (JSONObject) filesMainObject.get("project");
-		JSONArray filesArray = (JSONArray) project.get("files");
+
+	public void getFilesFromCategory(JSONObject project, JSONObject category) {
+		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(url, apiToken,
+				project.getString("id"));
+		JSONObject innerProject = (JSONObject) filesMainObject.get("project");
+		JSONArray filesArray = (JSONArray) innerProject.get("files");
 
 		Iterator k = filesArray.iterator();
 		while (k.hasNext()) {
 			JSONObject singleFile = (JSONObject) k.next();
-			if (singleFile.get("category-id").equals(categoryId))
-				System.out.println("PLIK: " + singleFile.get("name"));
+			if (category == null) {
+				JSONObject finalFile = getFinalFileObject(url, apiToken, singleFile.getString("id"));
+				JSONObject finalFileContent = (JSONObject) finalFile.get("file");
+				cm.AddAttatchmentToPage(project.getString("name"), "", dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+						finalFileContent.get("name").toString()));
+			}
+			else if (singleFile.get("category-id").equals(category.get("id"))) {
+				JSONObject finalFile = getFinalFileObject(url, apiToken, singleFile.getString("id"));
+				JSONObject finalFileContent = (JSONObject) finalFile.get("file");
+				cm.AddAttatchmentToPage(project.getString("name"), category.getString("name"), dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+						finalFileContent.get("name").toString()));
+			}
 		}
 	}
-	
+
+	private JSONObject getFinalFileObject(String urlS, String apiToken, String fileId) {
+		String credentials = apiToken + ":X";
+		return downloadJson(urlS, "files/" + fileId + ".json", credentials);
+	}
+
 	public JSONObject getAllCategoriesFromProject(String urlS, String apiToken, String projectId) {
 		String credentials = apiToken + ":X";
-		return downloadJson(urlS, "/projects/" + projectId + "/fileCategories.json", credentials);
+		return downloadJson(urlS, "projects/" + projectId + "/fileCategories.json", credentials);
 	}
 
 	public JSONObject getAllFilesFromProject(String urlS, String apiToken, String projectId) {
 		String credentials = apiToken + ":X";
-		return downloadJson(urlS, "/projects/" + projectId + "/files.json", credentials);
+		return downloadJson(urlS, "projects/" + projectId + "/files.json", credentials);
 	}
 
 	public JSONObject getAllProjects(String urlS, String apiToken) {
 		String credentials = apiToken + ":X";
-		return downloadJson(urlS, "/projects.json", credentials);
+		return downloadJson(urlS, "projects.json", credentials);
 	}
 
 	public JSONObject downloadJson(String urlBeginning, String urlEnding, String credentials) {
