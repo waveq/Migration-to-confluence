@@ -52,12 +52,14 @@ public class TeamworkDownloader {
 	public void getCategoriesAndFiles(JSONObject project, String parentId, JSONArray categoriesArray) {
 		Iterator i = categoriesArray.iterator();
 
-		if (parentId.equals("")) {
-			getFilesFromCategory(project, null);
-		}
+
 		while (i.hasNext()) {
 			JSONObject category = (JSONObject) i.next();
-			if (category.get("parent-id").equals(parentId)) {
+			if (parentId.equals("")) {
+				cm.CreatePage(project.getString("name"), category.getString("name"), parentId);
+				getFilesFromCategory(project, null);
+			}
+			else if (category.get("parent-id").equals(parentId)) {
 				System.out.println("##KATEGORIA " + category.get("name"));
 				cm.CreatePage(project.getString("name"), category.getString("name"), parentId);
 				getFilesFromCategory(project, category);
