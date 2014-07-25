@@ -75,6 +75,7 @@ public class ConfluenceManager {
 		if(toPageName.equals("")) 
 			toPageName="@home";
 		ExecCmd(ConfluenceCommand.AddAttatchmentToPage(spaceName, toPageName, fileToUpload.getAbsoluteFile().getAbsolutePath()));
+		fileToUpload.delete();
 	}
 	
 	public void RemoveSpace(String spaceName){
