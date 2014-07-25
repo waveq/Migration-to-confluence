@@ -50,32 +50,33 @@ public class ConfluenceManager {
 		ExecCmd(ConfluenceCommand.AddSpace(SpaceName));
 	}
 
-	/**
-	 * Create Page in Confluence
-	 * @param SpaceName
-	 * @param PageName
-	 */
-	public void CreatePage(String SpaceName, String PageName) {
-		ExecCmd(ConfluenceCommand.AddPage(SpaceName, PageName));
-	}
 
 	/**
-	 * Create Nested Page in Confluence
+	 * Create Page in Confluence. If ParentPageName is equals "", Page will be added to Space otherwise Page will be nested to other Page
 	 * @param SpaceName
 	 * @param PageName
 	 * @param ParentPageName
 	 */
-	public void CreateNestedPage(String SpaceName, String PageName, String ParentPageName) {
-		ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, ParentPageName));
+	public void CreatePage(String SpaceName, String PageName, String ParentPageName) {
+		if(ParentPageName.equals(""))
+			ExecCmd(ConfluenceCommand.AddPage(SpaceName, PageName));
+		else
+			ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, ParentPageName));
 	}
 	
 	/**
 	 * Add file to selected Page. If you want add file to main space set toPageName=@home
 	 * @param spaceName
 	 * @param toPageName
-	 * @param pathToFile
+	 * @param nameOfFile
 	 */
-	public void AddAttatchmentToPage(String spaceName, String toPageName, String pathToFile) {
-		ExecCmd(ConfluenceCommand.AddAttatchmentToPage(spaceName, toPageName, pathToFile));
+	public void AddAttatchmentToPage(String spaceName, String toPageName, String nameOfFile) {
+		File fileToUpload = new File("./temp/"+nameOfFile);
+		fileToUpload.getAbsoluteFile().getAbsolutePath();
+		ExecCmd(ConfluenceCommand.AddAttatchmentToPage(spaceName, toPageName, fileToUpload.getAbsoluteFile().getAbsolutePath()));
+	}
+	
+	public void RemoveSpace(String spaceName){
+		ExecCmd(ConfluenceCommand.RemoveSpace(spaceName));
 	}
 }

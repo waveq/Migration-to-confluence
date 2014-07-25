@@ -11,7 +11,8 @@ public class ConfluenceCommand {
 	 * title - pageName (main place of page is @home)file - path to
 	 * file
 	 */
-	private static final String AddAttatchmentToPage = " --action addAttachment --space \"%s\" --title \"%s\" --file \"%s\"";
+	private static final String ADD_ATTATCHMENT_TO_PAGE = " --action addAttachment --space \"%s\" --title \"%s\" --file \"%s\"";
+	private static final String REMOVE_SPACE = " --action removeSpace --space \"%s\"";
 
 	public static String AddSpace(String spaceName) {
 		System.out.println(String.format(ADD_SPACE, spaceName, spaceName));
@@ -27,6 +28,10 @@ public class ConfluenceCommand {
 	}
 
 	public static String AddAttatchmentToPage(String spaceName, String toPageName, String pathToFile) {
-		return String.format(AddAttatchmentToPage, spaceName, toPageName, pathToFile);
+		return String.format(ADD_ATTATCHMENT_TO_PAGE, spaceName, toPageName, pathToFile);
+	}
+	
+	public static String RemoveSpace(String spaceName) {
+		return String.format(REMOVE_SPACE, spaceName);
 	}
 }
