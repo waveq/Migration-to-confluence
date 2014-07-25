@@ -59,7 +59,7 @@ public class ConfluenceManager {
 	 */
 	public void CreatePage(String SpaceName, String PageName, String ParentPageName) {
 		if(ParentPageName.equals(""))
-			ExecCmd(ConfluenceCommand.AddPage(SpaceName, PageName));
+			ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, "@home"));//ExecCmd(ConfluenceCommand.AddPage(SpaceName, PageName));
 		else
 			ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, ParentPageName));
 	}
