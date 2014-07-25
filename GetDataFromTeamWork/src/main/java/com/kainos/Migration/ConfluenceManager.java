@@ -23,7 +23,7 @@ public class ConfluenceManager {
 		try {
 			Process p = Runtime.getRuntime().exec("cmd.exe /c " + dirPath + cmd);
 			p.waitFor();
-
+			System.out.println(cmd);
 			// print some result from cmd
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "", sb = "";
@@ -58,7 +58,7 @@ public class ConfluenceManager {
 	 */
 	public void CreatePage(String SpaceName, String PageName, String ParentPageName) {
 		if(ParentPageName.equals(""))
-			ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, "@home"));//ExecCmd(ConfluenceCommand.AddPage(SpaceName, PageName));
+			ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, "@home"));
 		else
 			ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, ParentPageName));
 	}
@@ -72,6 +72,8 @@ public class ConfluenceManager {
 	public void AddAttatchmentToPage(String spaceName, String toPageName, String nameOfFile) {
 		File fileToUpload = new File("./temp/"+nameOfFile);
 		fileToUpload.getAbsoluteFile().getAbsolutePath();
+		if(toPageName.equals("")) 
+			toPageName="@home";
 		ExecCmd(ConfluenceCommand.AddAttatchmentToPage(spaceName, toPageName, fileToUpload.getAbsoluteFile().getAbsolutePath()));
 	}
 	

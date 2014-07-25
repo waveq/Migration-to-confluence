@@ -32,38 +32,37 @@ public class TeamworkDownloader {
 	}
 
 	public void printTree(JSONObject mainJson) {
-
 		JSONArray array = (JSONArray) mainJson.get("projects");
 
 		Iterator i = array.iterator();
 		while (i.hasNext()) {
 			JSONObject singleProject = (JSONObject) i.next();
-			System.out.println("#PROJEKT: " + singleProject.get("name"));
-			 cm.CreateSpace(singleProject.get("name").toString());
-
+			cm.CreateSpace(singleProject.get("name").toString());
 			JSONObject categoriesMainObject = getAllCategoriesFromProject(url, apiToken,
 					singleProject.getString("id"));
 			JSONArray categoriesArray = (JSONArray) categoriesMainObject.get("categories");
 
-			getCategoriesAndFiles(singleProject, "", categoriesArray);
+			getCategories(singleProject, "", "", categoriesArray);
 		}
 	}
 
-	public void getCategoriesAndFiles(JSONObject project, String parentId, JSONArray categoriesArray) {
+	public void getCategories(JSONObject project, String parentName, String parentId,
+			JSONArray categoriesArray) {
 		Iterator i = categoriesArray.iterator();
 
+		if (parentName.equals("")) {
+			// TUTAJ SA DODAWANE PLIKI KTORE SA BEZ STRONY W ROOCIE SPEJSA
+			System.out.println("TUTAJ POWINNY BYC DODANE PLIKI BEZ KATEGORII");
+		}
 
 		while (i.hasNext()) {
 			JSONObject category = (JSONObject) i.next();
-			if (parentId.equals("")) {
-				cm.CreatePage(project.getString("name"), category.getString("name"), parentId);
-				getFilesFromCategory(project, null);
-			}
-			else if (category.get("parent-id").equals(parentId)) {
-				System.out.println("##KATEGORIA " + category.get("name"));
-				cm.CreatePage(project.getString("name"), category.getString("name"), parentId);
+
+			if (category.get("parent-id").equals(parentId)) {
+				cm.CreatePage(project.getString("name"), category.getString("name"), parentName);
 				getFilesFromCategory(project, category);
-				getCategoriesAndFiles(project, category.getString("id"), categoriesArray);
+				getCategories(project, category.getString("name"), category.getString("id"),
+						categoriesArray);
 			}
 		}
 	}
@@ -77,17 +76,13 @@ public class TeamworkDownloader {
 		Iterator k = filesArray.iterator();
 		while (k.hasNext()) {
 			JSONObject singleFile = (JSONObject) k.next();
-			if (category == null) {
+
+			if (singleFile.get("category-id").equals(category.get("id"))) {
 				JSONObject finalFile = getFinalFileObject(url, apiToken, singleFile.getString("id"));
 				JSONObject finalFileContent = (JSONObject) finalFile.get("file");
-				cm.AddAttatchmentToPage(project.getString("name"), "", dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
-						finalFileContent.get("name").toString()));
-			}
-			else if (singleFile.get("category-id").equals(category.get("id"))) {
-				JSONObject finalFile = getFinalFileObject(url, apiToken, singleFile.getString("id"));
-				JSONObject finalFileContent = (JSONObject) finalFile.get("file");
-				cm.AddAttatchmentToPage(project.getString("name"), category.getString("name"), dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
-						finalFileContent.get("name").toString()));
+				cm.AddAttatchmentToPage(project.getString("name"), category.getString("name"),
+						dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+								finalFileContent.get("name").toString()));
 			}
 		}
 	}
