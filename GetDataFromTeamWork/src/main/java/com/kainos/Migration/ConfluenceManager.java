@@ -71,7 +71,6 @@ public class ConfluenceManager {
 	 */
 	public void AddAttatchmentToPage(String spaceName, String toPageName, String nameOfFile) {
 		File fileToUpload = new File("./temp/"+nameOfFile);
-		fileToUpload.getAbsoluteFile().getAbsolutePath();
 		if(toPageName.equals("")) 
 			toPageName="@home";
 		ExecCmd(ConfluenceCommand.AddAttatchmentToPage(spaceName, toPageName, fileToUpload.getAbsoluteFile().getAbsolutePath()));
