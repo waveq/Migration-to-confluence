@@ -14,13 +14,13 @@ import java.util.Scanner;
 public class Manager {
 	String teamworkApiToken;
 	String teamworkUrl;
-	TeamworkDownloader td;
+	JSONExtractor je;
 	private Properties prop = new Properties();
 	InputStream input;
 
 	public Manager() {
 		GetAndSetRequiredProperties();
-		td = new TeamworkDownloader(teamworkApiToken, teamworkUrl);
+		je = new JSONExtractor(teamworkApiToken, teamworkUrl);
 	}
 
 	/**

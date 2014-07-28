@@ -19,7 +19,7 @@ import org.apache.commons.codec.binary.Base64;
  * @author szymonre
  *
  */
-public class TeamworkDownloader {
+public class JSONExtractor {
 
 	// Beginning of teamworkurl (https://yourpage.teamwork.com/).
 	private String urlBeginning;
@@ -28,7 +28,7 @@ public class TeamworkDownloader {
 	// Credentials used to connect to teamwork's rest API (yourapiToken:X)
 	private String credentials;
 
-	public TeamworkDownloader(String apiToken, String url) {
+	public JSONExtractor(String apiToken, String url) {
 		this.credentials = apiToken + ":X";
 		this.urlBeginning = url;
 
