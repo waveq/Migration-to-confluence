@@ -9,7 +9,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.Scanner;
+
+import org.apache.commons.io.FileUtils;
+//import org.apache.commons.io;
 
 public class Manager {
 	String teamworkApiToken;

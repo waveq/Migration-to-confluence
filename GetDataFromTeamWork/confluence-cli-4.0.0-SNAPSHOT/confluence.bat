@@ -16,5 +16,9 @@ java -jar "%dirPath%"/lib/confluence-cli-4.0.0-SNAPSHOT.jar --server "%server%" 
 
 java -jar "%dirPath%"/lib/confluence-cli-4.0.0-SNAPSHOT.jar %*
 
+cd temp
+del *.*
+cd ..
+
 rem Exit with the correct error level.
 EXIT /B %ERRORLEVEL%
