@@ -17,7 +17,6 @@ public class DownloadFileFromTW {
 		try {
 			website = new URL(Url);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-
 			System.out.println("Start download " + fileName);
 			long middle = System.currentTimeMillis();
 			fos = new FileOutputStream("temp/" + fileName);
@@ -36,5 +35,6 @@ public class DownloadFileFromTW {
 		}
 		return null;
 	}
+	
 
 }

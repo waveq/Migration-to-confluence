@@ -128,19 +128,24 @@ public class JSONExtractor {
 				if (singleFile.getString("category-id").equals("")) {
 					JSONObject finalFile = getFinalFileObject(singleFile.getString("id"));
 					JSONObject finalFileContent = (JSONObject) finalFile.get("file");
-					cm.AddAttatchmentToPage(project.getString("name"), "", dfftw.DownloadFileFrom(
+					
+					
+					String fileName = dfftw.DownloadFileFrom(
 							finalFileContent.get("download-URL").toString(),
-							finalFileContent.get("name").toString()));
+							finalFileContent.get("name").toString());
+					
+					cm.AddAttatchmentToPage(project.getString("name"), "", fileName);
 				}
 			} else if (singleFile.get("category-id").equals(category.get("id"))) {
 				JSONObject finalFile = getFinalFileObject(singleFile.getString("id"));
 				JSONObject finalFileContent = (JSONObject) finalFile.get("file");
-				cm.AddAttatchmentToPage(project.getString("name"), category.getString("name"),
-						dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
-								finalFileContent.get("name").toString()));
+				String fileName = dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+						finalFileContent.get("name").toString());
+				cm.AddAttatchmentToPage(project.getString("name"), category.getString("name"), fileName);
 			}
 		}
 	}
+	
 
 	/**
 	 * Returns JSONObject that contains all informations (name, id, category-id,
