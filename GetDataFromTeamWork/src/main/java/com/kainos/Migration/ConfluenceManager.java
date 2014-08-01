@@ -21,9 +21,9 @@ public class ConfluenceManager {
 	 */
 	private void ExecCmd(String cmd) {
 		try {
-			Process p = Runtime.getRuntime().exec("cmd.exe /c " + dirPath + cmd);
+			Process p = Runtime.getRuntime().exec("cmd.exe /c start " + dirPath + cmd);
 			p.waitFor();
-			System.out.println(cmd);
+			System.out.println("cmd.exe " + dirPath + cmd);
 			// print some result from cmd
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "", sb = "";

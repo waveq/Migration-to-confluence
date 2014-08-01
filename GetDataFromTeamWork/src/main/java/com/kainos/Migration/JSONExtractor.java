@@ -1,6 +1,7 @@
 package com.kainos.Migration;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -11,6 +12,8 @@ import java.util.Iterator;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
+
+import com.kainos.mp4Converter.*;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -27,6 +30,8 @@ public class JSONExtractor {
 	private DownloadFileFromTW dfftw;
 	// Credentials used to connect to teamwork's rest API (yourapiToken:X)
 	private String credentials;
+	private Cut cut;
+	
 
 	public JSONExtractor(String apiToken, String url) {
 		this.credentials = apiToken + ":X";
@@ -34,8 +39,6 @@ public class JSONExtractor {
 
 		dfftw = new DownloadFileFromTW();
 		cm = new ConfluenceManager();
-
-		goThroughTree(getAllProjects());
 	}
 
 	/**
@@ -45,8 +48,8 @@ public class JSONExtractor {
 	 *            - json object that contains list of all projects in
 	 *            TeamworkPM.
 	 */
-	public void goThroughTree(JSONObject mainJson) {
-		JSONArray array = (JSONArray) mainJson.get("projects");
+	public void goThroughTree() {
+		JSONArray array = (JSONArray) getAllProjects().get("projects");
 
 		Iterator i = array.iterator();
 		while (i.hasNext()) {
@@ -139,14 +142,32 @@ public class JSONExtractor {
 			} else if (singleFile.get("category-id").equals(category.get("id"))) {
 				JSONObject finalFile = getFinalFileObject(singleFile.getString("id"));
 				JSONObject finalFileContent = (JSONObject) finalFile.get("file");
+				
 				String fileName = dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
 						finalFileContent.get("name").toString());
-				cm.AddAttatchmentToPage(project.getString("name"), category.getString("name"), fileName);
+				
+				if(fileName.substring(fileName.length()-4, fileName.length()).equals(".mp4")) {
+					System.out.println("WYKRYLEM PLIK MP4");
+					mp4File(project.getString("name"), category.getString("name"), fileName);
+				}
+				else {
+					cm.AddAttatchmentToPage(project.getString("name"), category.getString("name"), fileName);
+				}
 			}
 		}
 	}
 	
-
+	private void mp4File(String projectName, String categoryName, String fileName) {
+		File f = new File("./temp/");
+		String path = f.getAbsolutePath()+"\\";
+		cut = new Cut(fileName, path);
+		int numberOfFiles = cut.start();
+		
+		for(int i=0; i<numberOfFiles;i++) {
+			cm.AddAttatchmentToPage(projectName, categoryName, cut.modifyName(fileName, i+1));
+		}
+	}
+	
 	/**
 	 * Returns JSONObject that contains all informations (name, id, category-id,
 	 * project-id, download-URL) of file which id was passed.

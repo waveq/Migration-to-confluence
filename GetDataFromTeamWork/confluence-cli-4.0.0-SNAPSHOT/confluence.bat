@@ -12,14 +12,15 @@ set username=nynon
 set password=tajnehaslo
 
 rem - Customize for your installation, for instance you might want to add default parameters like the following:
-java -jar "%dirPath%"/lib/confluence-cli-4.0.0-SNAPSHOT.jar --server "%server%" --user "%username%" --password "%password%" %*
+java -Xmx1g  -Xms512m -jar "%dirPath%"/lib/confluence-cli-4.0.0-SNAPSHOT.jar --server "%server%" --user "%username%" --password "%password%" %*
 
-java -jar "%dirPath%"/lib/confluence-cli-4.0.0-SNAPSHOT.jar %*
+rem java -Xmx8g -Xms2g -jar "%dirPath%"/lib/confluence-cli-4.0.0-SNAPSHOT.jar %*
 
-cd ..
-cd temp
-del *.* /Q
-cd ..
+rem cd ..
+rem cd temp
+rem del *.* /Q
+rem cd ..
+exit
 
 rem Exit with the correct error level.
-EXIT /B %ERRORLEVEL%
+rem EXIT /B %ERRORLEVEL%

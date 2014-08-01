@@ -15,7 +15,6 @@ public class ConfluenceCommand {
 	private static final String REMOVE_SPACE = " --action removeSpace --space \"%s\"";
 
 	public static String AddSpace(String spaceName) {
-		System.out.println(String.format(ADD_SPACE, spaceName, spaceName));
 		return String.format(ADD_SPACE, spaceName, spaceName);
 	}
 

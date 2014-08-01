@@ -20,6 +20,7 @@ public class Manager {
 	public Manager() {
 		GetAndSetRequiredProperties();
 		je = new JSONExtractor(teamworkApiToken, teamworkUrl);
+		je.goThroughTree();
 	}
 
 	/**
