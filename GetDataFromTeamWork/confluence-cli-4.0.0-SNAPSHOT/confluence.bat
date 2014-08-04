@@ -20,7 +20,7 @@ rem cd ..
 rem cd temp
 rem del *.* /Q
 rem cd ..
-exit
+rem exit
 
 rem Exit with the correct error level.
 rem EXIT /B %ERRORLEVEL%

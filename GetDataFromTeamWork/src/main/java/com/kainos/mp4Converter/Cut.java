@@ -26,7 +26,7 @@ public class Cut {
 	private long cutMinute;
 	private long minuteCounter;
 
-	private static final int PART_LENGTH_IN_MINUTES = 5;
+	private static final int PART_LENGTH_IN_MINUTES = 18;
 	private static final int MULTIPLIER_TO_MINUTE = 60 * 1000000;
 
 	public int start() {
@@ -36,15 +36,11 @@ public class Cut {
 		CutChecker cutChecker = new CutChecker();
 		reader.addListener(cutChecker);
 		String newName = modifyName(fileName, 1);
-		System.out.println("ROBIE TU: " + path + newName);
+		System.out.println("IM CREATING: " + path + newName);
 		writer = ToolFactory.makeWriter(path + newName, reader);
 		cutChecker.addListener(writer);
 		int counter = 2;
 		while (reader.readPacket() == null) {
-			long timePassed = cutChecker.timeInMilisec;
-			if(timePassed % 100 == 0) {
-				System.out.println("Progress in compressing part of file: " + (timePassed / 1000000)+ " / " + (cutMinute / 1000000));
-			}
 			if (cutChecker.timeInMilisec >= cutMinute) {
 				cutChecker.removeListener(writer);
 				writer.close();
@@ -57,7 +53,7 @@ public class Cut {
 	public int generateNewFile(IMediaReader reader, IMediaWriter writer, CutChecker cutChecker,
 			int pt) {
 		String newName = modifyName(fileName, pt);
-		System.out.println("ROBIE TU: " + path + newName);
+		System.out.println("Im creating file here: " + path + newName);
 		this.writer = ToolFactory.makeWriter(path + newName, reader);
 		cutChecker.addListener(this.writer);
 

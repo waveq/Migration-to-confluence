@@ -17,67 +17,104 @@ public class ConfluenceManager {
 
 	/**
 	 * Wrapper method. Run appropriate command
-	 * @param cmd String contains Confluence command
+	 * 
+	 * @param cmd
+	 *            String contains Confluence command
 	 */
-	private void ExecCmd(String cmd) {
+	static int counter = 0;
+
+	private String execCmd(String cmd) {
 		try {
-			Process p = Runtime.getRuntime().exec("cmd.exe /c start " + dirPath + cmd);
+			Process p = Runtime.getRuntime().exec(dirPath + cmd);
 			p.waitFor();
-			System.out.println("cmd.exe " + dirPath + cmd);
-			// print some result from cmd
-			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line = "", sb = "";
-			while ((line = reader.readLine()) != null) {
-				sb += line + "\n";
-			}
-			System.out.print(sb);
-			// end code
+			System.out.println(dirPath + cmd);
+			// OutputReaders:
+			return printOutput(p);
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		return "";
+	}
 
+	private String printOutput(Process process) {
+		BufferedReader stdInput = new BufferedReader(
+				new InputStreamReader(process.getInputStream()));
+		BufferedReader stdError = new BufferedReader(
+				new InputStreamReader(process.getErrorStream()));
+		String line, output = "", error = "";
+		try {
+			while ((line = stdError.readLine()) != null) {
+				error += (line + "\n");
+			}
+			while ((line = stdInput.readLine()) != null) {
+				output += (line + "\n");
+			}
+			System.out.println(output);
+			System.out.println(error);
+
+			if (output.contains("attachments in list"))
+				return output.substring(0, 1);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 
 	/**
 	 * Create Space in Confluence
+	 * 
 	 * @param SpaceName
 	 */
-	public void CreateSpace(String SpaceName) {
-		ExecCmd(ConfluenceCommand.AddSpace(SpaceName));
+	public void createSpace(String SpaceName) {
+		execCmd(ConfluenceCommand.addSpace(SpaceName));
 	}
 
-
 	/**
-	 * Create Page in Confluence. If ParentPageName is equals "", Page will be added to Space otherwise Page will be nested to other Page
+	 * Create Page in Confluence. If ParentPageName is equals "", Page will be
+	 * added to Space otherwise Page will be nested to other Page
+	 * 
 	 * @param SpaceName
 	 * @param PageName
 	 * @param ParentPageName
 	 */
-	public void CreatePage(String SpaceName, String PageName, String ParentPageName) {
-		if(ParentPageName.equals(""))
-			ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, "@home"));
+	public void createPage(String SpaceName, String PageName, String ParentPageName) {
+		if (ParentPageName.equals(""))
+			execCmd(ConfluenceCommand.addNestedPage(SpaceName, PageName, "@home"));
 		else
-			ExecCmd(ConfluenceCommand.AddNestedPage(SpaceName, PageName, ParentPageName));
+			execCmd(ConfluenceCommand.addNestedPage(SpaceName, PageName, ParentPageName));
 	}
-	
+
 	/**
-	 * Add file to selected Page. If you want add file to main space set toPageName=@home
+	 * Add file to selected Page. If you want add file to main space set
+	 * toPageName=@home
+	 * 
 	 * @param spaceName
 	 * @param toPageName
-	 * @param nameOfFile
+	 * @param fileName
 	 */
-	public void AddAttatchmentToPage(String spaceName, String toPageName, String nameOfFile) {
-		File fileToUpload = new File("./temp/"+nameOfFile);
-		if(toPageName.equals("")) 
-			toPageName="@home";
-		ExecCmd(ConfluenceCommand.AddAttatchmentToPage(spaceName, toPageName, fileToUpload.getAbsoluteFile().getAbsolutePath()));
-		fileToUpload.delete();
+	public void addAttatchmentToPage(String spaceName, String toPageName, String fileName) {
+		File fileToUpload = new File("./temp/" + fileName);
+		if (toPageName.equals(""))
+			toPageName = "@home";
+		execCmd(ConfluenceCommand.addAttatchmentToPage(spaceName, toPageName, fileToUpload
+				.getAbsoluteFile().getAbsolutePath()));
+		// fileToUpload.delete();
 	}
-	
-	public void RemoveSpace(String spaceName){
-		ExecCmd(ConfluenceCommand.RemoveSpace(spaceName));
+
+	public boolean searchForFileInSpace(String spaceName, String fileName) {
+		String s = execCmd(ConfluenceCommand.searchForFile(spaceName, fileName));
+		int number;
+		if (!s.equals("")) {
+			return Integer.parseInt(s) != 0;
+		}
+		return false;
+	}
+
+	public void removeSpace(String spaceName) {
+		execCmd(ConfluenceCommand.removeSpace(spaceName));
 	}
 }

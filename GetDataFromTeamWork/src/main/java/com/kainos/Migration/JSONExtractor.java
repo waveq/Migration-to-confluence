@@ -31,7 +31,6 @@ public class JSONExtractor {
 	// Credentials used to connect to teamwork's rest API (yourapiToken:X)
 	private String credentials;
 	private Cut cut;
-	
 
 	public JSONExtractor(String apiToken, String url) {
 		this.credentials = apiToken + ":X";
@@ -39,6 +38,7 @@ public class JSONExtractor {
 
 		dfftw = new DownloadFileFromTW();
 		cm = new ConfluenceManager();
+		cut = new Cut("", "");
 	}
 
 	/**
@@ -54,7 +54,7 @@ public class JSONExtractor {
 		Iterator i = array.iterator();
 		while (i.hasNext()) {
 			JSONObject singleProject = (JSONObject) i.next();
-			cm.CreateSpace(singleProject.get("name").toString());
+			cm.createSpace(singleProject.get("name").toString());
 			JSONObject categoriesMainObject = getAllCategoriesFromProject(singleProject
 					.getString("id"));
 			JSONArray categoriesArray = (JSONArray) categoriesMainObject.get("categories");
@@ -96,7 +96,7 @@ public class JSONExtractor {
 			JSONObject category = (JSONObject) i.next();
 
 			if (category.get("parent-id").equals(parentId)) {
-				cm.CreatePage(project.getString("name"), category.getString("name"), parentName);
+				cm.createPage(project.getString("name"), category.getString("name"), parentName);
 				getFilesFromCategory(project, category);
 				getCategories(project, category.getString("name"), category.getString("id"),
 						categoriesArray);
@@ -117,6 +117,8 @@ public class JSONExtractor {
 	 *            - json object of file's project used
 	 * @param category
 	 *            - json object of file's category
+	 * 
+	 *            WHOLE METHOD TO REWRITE TO MUCH NESTING.
 	 */
 	public void getFilesFromCategory(JSONObject project, JSONObject category) {
 		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(project.getString("id"));
@@ -131,43 +133,120 @@ public class JSONExtractor {
 				if (singleFile.getString("category-id").equals("")) {
 					JSONObject finalFile = getFinalFileObject(singleFile.getString("id"));
 					JSONObject finalFileContent = (JSONObject) finalFile.get("file");
+
+					String fileName = finalFileContent.getString("name");
 					
-					
-					String fileName = dfftw.DownloadFileFrom(
-							finalFileContent.get("download-URL").toString(),
-							finalFileContent.get("name").toString());
-					
-					cm.AddAttatchmentToPage(project.getString("name"), "", fileName);
+					if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4")) {
+						if (!cm.searchForFileInSpace(project.getString("name"),
+								cut.modifyName(finalFileContent.getString("name"), 1))) {
+							dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+									fileName);
+						} else {
+							System.out.println("File with name: " + fileName
+									+ " has been already added to confluence. Im skipping it.");
+							continue;
+						}
+					}
+					else {
+						if (!cm.searchForFileInSpace(project.getString("name"),
+								finalFileContent.getString("name"))) {
+							dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+									fileName);
+						} else {
+							System.out.println("File with name: " + fileName
+									+ " has been already added to confluence. Im skipping it.");
+							continue;
+						}
+					}
+
+					// Check if file has .mp4 extension
+					if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4")) {
+						System.out.println("MP4 FILE DETECTED");
+						mp4File(project.getString("name"), "", fileName);
+					} else {
+						boolean fileUploaded = false;
+						while (!fileUploaded) {
+							cm.addAttatchmentToPage(project.getString("name"), "", fileName);
+							fileUploaded = cm.searchForFileInSpace(project.getString("name"),
+									fileName);
+							System.out.println("File uploaded [" + fileUploaded + "]");
+						}
+					}
 				}
 			} else if (singleFile.get("category-id").equals(category.get("id"))) {
 				JSONObject finalFile = getFinalFileObject(singleFile.getString("id"));
 				JSONObject finalFileContent = (JSONObject) finalFile.get("file");
+
+				String fileName = finalFileContent.getString("name");
 				
-				String fileName = dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
-						finalFileContent.get("name").toString());
 				
-				if(fileName.substring(fileName.length()-4, fileName.length()).equals(".mp4")) {
-					System.out.println("WYKRYLEM PLIK MP4");
-					mp4File(project.getString("name"), category.getString("name"), fileName);
+				
+				if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4")) {
+					if (!cm.searchForFileInSpace(project.getString("name"),
+							cut.modifyName(finalFileContent.getString("name"), 1))) {
+						dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+								fileName);
+					} else {
+						System.out.println("File with name: " + cut.modifyName(fileName, 1)
+								+ " has been already added to confluence. Im skipping it.");
+						continue;
+					}
+				} else {
+					if (!cm.searchForFileInSpace(project.getString("name"),
+							finalFileContent.getString("name"))) {
+						dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+								fileName);
+					} else {
+						System.out.println("File with name: " + fileName
+								+ " has been already added to confluence. Im skipping it.");
+						continue;
+					}
 				}
-				else {
-					cm.AddAttatchmentToPage(project.getString("name"), category.getString("name"), fileName);
+
+				// Check if file has .mp4 extension
+				if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4")) {
+					System.out.println("MP4 FILE DETECTED");
+					mp4File(project.getString("name"), category.getString("name"), fileName);
+				} else {
+					boolean fileUploaded = false;
+					while (!fileUploaded) {
+						cm.addAttatchmentToPage(project.getString("name"),
+								category.getString("name"), fileName);
+						fileUploaded = cm.searchForFileInSpace(project.getString("name"), fileName);
+						System.out.println("File uploaded [" + fileUploaded + "]");
+					}
 				}
 			}
 		}
 	}
-	
+
+	/**
+	 * If the file has mp4 extension then it's parsed through Cut class and
+	 * split if it's longer than specified in Cut class PART_LENGTH_IN_MINUTES
+	 * parameter. After that every part is pushed to confluence via
+	 * AddAttatchmentToPage.
+	 * 
+	 * @param projectName
+	 * @param categoryName
+	 * @param fileName
+	 */
 	private void mp4File(String projectName, String categoryName, String fileName) {
 		File f = new File("./temp/");
-		String path = f.getAbsolutePath()+"\\";
+		String path = f.getAbsolutePath() + "\\";
 		cut = new Cut(fileName, path);
 		int numberOfFiles = cut.start();
-		
-		for(int i=0; i<numberOfFiles;i++) {
-			cm.AddAttatchmentToPage(projectName, categoryName, cut.modifyName(fileName, i+1));
+
+		for (int i = 0; i < numberOfFiles; i++) {
+			boolean fileUploaded = false;
+			String modifiedFileName = cut.modifyName(fileName, i + 1);
+			while (!fileUploaded) {
+				cm.addAttatchmentToPage(projectName, categoryName, modifiedFileName);
+				fileUploaded = cm.searchForFileInSpace(projectName, modifiedFileName);
+				System.out.println("File uploaded [" + fileUploaded + "]");
+			}
 		}
 	}
-	
+
 	/**
 	 * Returns JSONObject that contains all informations (name, id, category-id,
 	 * project-id, download-URL) of file which id was passed.

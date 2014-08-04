@@ -6,6 +6,7 @@ public class ConfluenceCommand {
 	private static final String ADD_SPACE = " --action addSpace --space \"%s\" --title \"%s\" ";
 	private static final String ADD_PAGE = " --action addPage --space \"%s\" --title \"%s\" --parent \"Home\"";
 	private static final String ADD_NESTED_PAGE = " --action addPage --space \"%s\" --title \"%s\" --parent \"%s\"";
+	private static final String SEARCH_FOR_FILE_IN_SPACE = " --action getAttachmentList --space \"%s\" --regex \"%s\"";
 	/*
 	 * space - space
 	 * title - pageName (main place of page is @home)file - path to
@@ -14,23 +15,27 @@ public class ConfluenceCommand {
 	private static final String ADD_ATTATCHMENT_TO_PAGE = " --action addAttachment --space \"%s\" --title \"%s\" --file \"%s\"";
 	private static final String REMOVE_SPACE = " --action removeSpace --space \"%s\"";
 
-	public static String AddSpace(String spaceName) {
+	public static String addSpace(String spaceName) {
 		return String.format(ADD_SPACE, spaceName, spaceName);
 	}
+	
+	public static String searchForFile(String space, String fileName) {
+		return String.format(SEARCH_FOR_FILE_IN_SPACE, space, fileName);
+	}
 
-	public static String AddPage(String spaceName, String pageName) {
+	public static String addPage(String spaceName, String pageName) {
 		return String.format(ADD_PAGE, spaceName, pageName);
 	}
 
-	public static String AddNestedPage(String spaceName, String pageName, String paentPageName) {
+	public static String addNestedPage(String spaceName, String pageName, String paentPageName) {
 		return String.format(ADD_NESTED_PAGE, spaceName, pageName, paentPageName);
 	}
 
-	public static String AddAttatchmentToPage(String spaceName, String toPageName, String pathToFile) {
+	public static String addAttatchmentToPage(String spaceName, String toPageName, String pathToFile) {
 		return String.format(ADD_ATTATCHMENT_TO_PAGE, spaceName, toPageName, pathToFile);
 	}
 	
-	public static String RemoveSpace(String spaceName) {
+	public static String removeSpace(String spaceName) {
 		return String.format(REMOVE_SPACE, spaceName);
 	}
 }

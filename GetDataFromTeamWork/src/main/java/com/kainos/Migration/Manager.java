@@ -69,10 +69,10 @@ public class Manager {
 		// Once everything is complete, delete old file..
 		File oldFile = new File(oldFileName);
 		oldFile.delete();
-
-		// And rename tmp file's name to old file name
-		File newFile = new File(tmpFileName);
-		newFile.renameTo(oldFile);
+//
+//		// And rename tmp file's name to old file name
+//		File newFile = new File(tmpFileName);
+//		newFile.renameTo(oldFile);
 
 	}
 
