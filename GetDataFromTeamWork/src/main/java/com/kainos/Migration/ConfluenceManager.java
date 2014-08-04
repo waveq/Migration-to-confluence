@@ -105,14 +105,27 @@ public class ConfluenceManager {
 		// fileToUpload.delete();
 	}
 
-	public boolean searchForFileInSpace(String spaceName, String fileName) {
-		String s = execCmd(ConfluenceCommand.searchForFile(spaceName, fileName));
-		int number;
+	public boolean fileWasUploadedBefore(String spaceName, String fileName) {
+		String s = execCmd(ConfluenceCommand.searchForFile(spaceName, regexModify(fileName)));
 		if (!s.equals("")) {
 			return Integer.parseInt(s) != 0;
 		}
 		return false;
 	}
+	
+	/**
+	 * replace all ( and { with \( and \{ so regex in confluence CLI could find it.
+	 * @param fileName
+	 * @return
+	 */
+	private String regexModify (String fileName) {
+		fileName = fileName.replaceAll("\\(", "\\\\(");
+		fileName = fileName.replaceAll("\\)", "\\\\)");
+		fileName = fileName.replaceAll("\\{", "\\\\{");
+		fileName = fileName.replaceAll("\\}", "\\\\}");
+		return fileName;
+	}
+	
 
 	public void removeSpace(String spaceName) {
 		execCmd(ConfluenceCommand.removeSpace(spaceName));

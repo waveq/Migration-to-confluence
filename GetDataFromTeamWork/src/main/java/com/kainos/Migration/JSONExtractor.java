@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import net.sf.json.JSONArray;
@@ -31,6 +32,11 @@ public class JSONExtractor {
 	// Credentials used to connect to teamwork's rest API (yourapiToken:X)
 	private String credentials;
 	private Cut cut;
+	private ArrayList<String> notUploadedFiles = new ArrayList<String>();
+	
+	private String[] ignoreFiles = {"Smart application images.tar.gz","Nuvo framework introduction.zip.008",
+			"Nuvo framework introduction.zip.007", "Nuvo framework introduction.zip.006", "Nuvo framework introduction.zip.005", "Nuvo framework introduction.zip.004",
+			"Nuvo framework introduction.zip.003", "Nuvo framework introduction.zip.002" ,"Nuvo framework introduction.zip.001" ,"Nuvo framework introduction.zip.000"};
 
 	public JSONExtractor(String apiToken, String url) {
 		this.credentials = apiToken + ":X";
@@ -54,13 +60,22 @@ public class JSONExtractor {
 		Iterator i = array.iterator();
 		while (i.hasNext()) {
 			JSONObject singleProject = (JSONObject) i.next();
-			cm.createSpace(singleProject.get("name").toString());
+			
+			String modifiedProjectName = singleProject.getString("name").replaceAll(" ", "").toLowerCase();
+			singleProject.put("name", modifiedProjectName);
+			cm.createSpace(singleProject.getString("name"));
 			JSONObject categoriesMainObject = getAllCategoriesFromProject(singleProject
 					.getString("id"));
 			JSONArray categoriesArray = (JSONArray) categoriesMainObject.get("categories");
 
 			getCategories(singleProject, "", "", categoriesArray);
 		}
+		
+		System.out.println("NOT UPLOADED FILES: ");
+		for(int j=0;j<notUploadedFiles.size();j++) {
+			System.out.println(j + " " + notUploadedFiles.get(j));
+		}
+		
 	}
 
 	/**
@@ -118,7 +133,7 @@ public class JSONExtractor {
 	 * @param category
 	 *            - json object of file's category
 	 * 
-	 *            WHOLE METHOD TO REWRITE TO MUCH NESTING.
+	 *  
 	 */
 	public void getFilesFromCategory(JSONObject project, JSONObject category) {
 		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(project.getString("id"));
@@ -127,97 +142,84 @@ public class JSONExtractor {
 
 		Iterator k = filesArray.iterator();
 		while (k.hasNext()) {
+	
+		
+			
 			JSONObject singleFile = (JSONObject) k.next();
 
 			if (category == null) {
-				if (singleFile.getString("category-id").equals("")) {
-					JSONObject finalFile = getFinalFileObject(singleFile.getString("id"));
-					JSONObject finalFileContent = (JSONObject) finalFile.get("file");
-
-					String fileName = finalFileContent.getString("name");
-					
-					if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4")) {
-						if (!cm.searchForFileInSpace(project.getString("name"),
-								cut.modifyName(finalFileContent.getString("name"), 1))) {
-							dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
-									fileName);
-						} else {
-							System.out.println("File with name: " + fileName
-									+ " has been already added to confluence. Im skipping it.");
-							continue;
-						}
-					}
-					else {
-						if (!cm.searchForFileInSpace(project.getString("name"),
-								finalFileContent.getString("name"))) {
-							dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
-									fileName);
-						} else {
-							System.out.println("File with name: " + fileName
-									+ " has been already added to confluence. Im skipping it.");
-							continue;
-						}
-					}
-
-					// Check if file has .mp4 extension
-					if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4")) {
-						System.out.println("MP4 FILE DETECTED");
-						mp4File(project.getString("name"), "", fileName);
-					} else {
-						boolean fileUploaded = false;
-						while (!fileUploaded) {
-							cm.addAttatchmentToPage(project.getString("name"), "", fileName);
-							fileUploaded = cm.searchForFileInSpace(project.getString("name"),
-									fileName);
-							System.out.println("File uploaded [" + fileUploaded + "]");
-						}
-					}
-				}
-			} else if (singleFile.get("category-id").equals(category.get("id"))) {
+				JSONObject customCategory = new JSONObject();
+				customCategory.put("id", "");
+				customCategory.put("name", "");
+				category = customCategory;
+			}
+			if (singleFile.get("category-id").equals(category.get("id"))) {
 				JSONObject finalFile = getFinalFileObject(singleFile.getString("id"));
 				JSONObject finalFileContent = (JSONObject) finalFile.get("file");
 
 				String fileName = finalFileContent.getString("name");
-				
-				
-				
-				if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4")) {
-					if (!cm.searchForFileInSpace(project.getString("name"),
-							cut.modifyName(finalFileContent.getString("name"), 1))) {
-						dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
-								fileName);
-					} else {
-						System.out.println("File with name: " + cut.modifyName(fileName, 1)
-								+ " has been already added to confluence. Im skipping it.");
-						continue;
-					}
-				} else {
-					if (!cm.searchForFileInSpace(project.getString("name"),
-							finalFileContent.getString("name"))) {
-						dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
-								fileName);
-					} else {
-						System.out.println("File with name: " + fileName
-								+ " has been already added to confluence. Im skipping it.");
-						continue;
+				boolean doContinue = false;
+				for(String s : ignoreFiles) {
+					if(fileName.equals(s)) {
+						doContinue = true;
 					}
 				}
+				if(doContinue){
+					continue;
+				}
+				
 
-				// Check if file has .mp4 extension
-				if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4")) {
-					System.out.println("MP4 FILE DETECTED");
-					mp4File(project.getString("name"), category.getString("name"), fileName);
+				if (!fileWasUploaded(fileName, project.getString("name"))) {
+					dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
+							fileName);
 				} else {
-					boolean fileUploaded = false;
-					while (!fileUploaded) {
-						cm.addAttatchmentToPage(project.getString("name"),
-								category.getString("name"), fileName);
-						fileUploaded = cm.searchForFileInSpace(project.getString("name"), fileName);
-						System.out.println("File uploaded [" + fileUploaded + "]");
+					System.out.println("File with name: "
+							+ (isMp4(fileName) ? cut.modifyName(fileName, 1) : fileName)
+							+ " has been already added to confluence. Im skipping it.");
+					continue;
+				}
+				uploadToConfluence(fileName, category.getString("name"), project.getString("name"));
+			}
+		}
+	}
+
+	private boolean fileWasUploaded(String fileName, String projectName) {
+		boolean mp4 = isMp4(fileName);
+		if (!cm.fileWasUploadedBefore(projectName, mp4 ? cut.modifyName(fileName, 1) : fileName)) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean uploadToConfluence(String fileName, String categoryName, String projectName) {
+		if (isMp4(fileName)) {
+			System.out.println("MP4 FILE DETECTED");
+			mp4File(projectName, categoryName, fileName);
+		} else {
+			boolean fileUploaded = false;
+			int counter = 0;
+			while (!fileUploaded && counter <= 6) {
+				cm.addAttatchmentToPage(projectName, categoryName, fileName);
+				fileUploaded = cm.fileWasUploadedBefore(projectName,fileName);
+				System.out.println("File uploaded [" + fileUploaded + "]");
+				counter++;
+				if(counter == 7) {
+					notUploadedFiles.add(fileName);
+					System.out.println("NOT UPLOADED FILES: ");
+					for(int j=0;j<notUploadedFiles.size();j++) {
+						System.out.println(j + " " + notUploadedFiles.get(j));
 					}
 				}
 			}
 		}
+		return true;
+	}
+
+	private boolean isMp4(String fileName) {
+		if (fileName.substring(fileName.length() - 4, fileName.length()).equals(".mp4"))
+			return true;
+		else
+			return false;
 	}
 
 	/**
@@ -239,10 +241,19 @@ public class JSONExtractor {
 		for (int i = 0; i < numberOfFiles; i++) {
 			boolean fileUploaded = false;
 			String modifiedFileName = cut.modifyName(fileName, i + 1);
-			while (!fileUploaded) {
+			int counter = 0;
+			while (!fileUploaded && counter <= 6) {
 				cm.addAttatchmentToPage(projectName, categoryName, modifiedFileName);
-				fileUploaded = cm.searchForFileInSpace(projectName, modifiedFileName);
+				fileUploaded = cm.fileWasUploadedBefore(projectName, modifiedFileName);
 				System.out.println("File uploaded [" + fileUploaded + "]");
+				counter++;
+				if(counter == 7) {
+					notUploadedFiles.add(modifiedFileName);
+					System.out.println("NOT UPLOADED FILES: ");
+					for(int j=0;j<notUploadedFiles.size();j++) {
+						System.out.println(j + " " + notUploadedFiles.get(j));
+					}
+				}
 			}
 		}
 	}
