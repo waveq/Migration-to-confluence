@@ -14,6 +14,7 @@ public class Manager {
 	String teamworkApiToken;
 	String teamworkUrl;
 	FileMigrator fm;
+	NotebookMigrator nm;
 	private Properties prop = new Properties();
 	InputStream input;
 
@@ -21,6 +22,10 @@ public class Manager {
 		GetAndSetRequiredProperties();
 		fm = new FileMigrator(teamworkApiToken, teamworkUrl);
 		fm.goThroughTree(JSONExtractor.FILE_CATEGORY);
+		
+//		nm = new NotebookMigrator(teamworkApiToken, teamworkUrl);
+//		nm.goThroughTree(JSONExtractor.NOTEBOOK_CATEGORY);
+		
 		
 		System.out.println("NOT UPLOADED FILES: ");
 		for(int j=0;j<fm.notUploadedFiles.size();j++) {

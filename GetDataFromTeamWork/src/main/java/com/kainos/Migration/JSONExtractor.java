@@ -18,10 +18,15 @@ public abstract class JSONExtractor {
 
 	private String urlBeginning;
 	private String credentials;
-	
+
 	static final int FILE_CATEGORY = 1;
 	static final int NOTEBOOK_CATEGORY = 2;
 	protected ConfluenceManager cm;
+	
+	/**
+	 * how many times program is retrying to upload file/notebook after fail.
+	 */
+	protected static final int ATTEMPTS_TO_UPLOAD = 4;
 
 	public JSONExtractor(String apiToken, String url) {
 		this.credentials = apiToken + ":X";
@@ -49,9 +54,16 @@ public abstract class JSONExtractor {
 			String modifiedProjectName = singleProject.getString("name").replaceAll(" ", "")
 					.toLowerCase();
 			singleProject.put("name", modifiedProjectName);
-			cm.createSpace(singleProject.getString("name"));
-			JSONObject categoriesMainObject = getAllCategoriesFromProject(singleProject
-					.getString("id"), categoryType);
+
+			if (cm.spaceWasCreatedBefore(singleProject.getString("name"))) {
+				System.out.println("Space with name: \"" + singleProject.getString("name")
+						+ "\" already exists in confluence. Im skipping it.");
+			} else {
+				cm.createSpace(singleProject.getString("name"));
+			}
+
+			JSONObject categoriesMainObject = getAllCategoriesFromProject(
+					singleProject.getString("id"), categoryType);
 			JSONArray categoriesArray = (JSONArray) categoriesMainObject.get("categories");
 
 			getCategories(singleProject, "", "", categoriesArray);
@@ -66,9 +78,9 @@ public abstract class JSONExtractor {
 	 * @return
 	 */
 	private JSONObject getAllCategoriesFromProject(String projectId, int categoryType) {
-		if(categoryType == 1)
+		if (categoryType == 1)
 			return downloadJSON("projects/" + projectId + "/filecategories.json");
-		else if(categoryType == 2)
+		else if (categoryType == 2)
 			return downloadJSON("projects/" + projectId + "/notebookcategories.json");
 		return null;
 	}

@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
 import com.kainos.mp4Converter.*;
 
 /**
@@ -24,10 +25,10 @@ public class FileMigrator extends JSONExtractor {
 			"Nuvo framework introduction.zip.006", "Nuvo framework introduction.zip.005",
 			"Nuvo framework introduction.zip.004", "Nuvo framework introduction.zip.003",
 			"Nuvo framework introduction.zip.002", "Nuvo framework introduction.zip.001",
-			"Nuvo framework introduction.zip.000", "Change Benefit Elections - Maxim Setup Call.AVI",
-			"Webinar.cptx", "Change Benefit Elections - Maxim Setup Call.wmv", "Sprint 4 Review Session.wmv",
-			"Scrum Developer Course - manual and reading.zip" 
-			};
+			"Nuvo framework introduction.zip.000",
+			"Change Benefit Elections - Maxim Setup Call.AVI", "Webinar.cptx",
+			"Change Benefit Elections - Maxim Setup Call.wmv", "Sprint 4 Review Session.wmv",
+			"Scrum Developer Course - manual and reading.zip" };
 
 	public FileMigrator(String apiToken, String url) {
 		super(apiToken, url);
@@ -37,10 +38,10 @@ public class FileMigrator extends JSONExtractor {
 
 	/**
 	 * Recursive method. If passed parentId is equals to current category's
-	 * parentId then that category is created in Confluence via ConfluenceManager's
-	 * CreatePage method. After that getCategories method is called and then
-	 * method calls itself and passes current category id and name as parentId
-	 * and parentName.
+	 * parentId then that category is created in Confluence via
+	 * ConfluenceManager's CreatePage method. After that getCategories method is
+	 * called and then method calls itself and passes current category id and
+	 * name as parentId and parentName.
 	 * 
 	 * If parentName equals "" it means it first invoke of method and we have to
 	 * download and upload files that have no parent category.
@@ -69,7 +70,12 @@ public class FileMigrator extends JSONExtractor {
 			JSONObject category = (JSONObject) i.next();
 
 			if (category.get("parent-id").equals(parentId)) {
-				cm.createPage(project.getString("name"), category.getString("name"), parentName);
+				if (cm.pageWasCreatedBefore(project.getString("name"), category.getString("name"))) {
+					System.out.println("Page with name: \"" + category.getString("name")
+							+ "\" already exists in confluence. Im skipping it.");
+				} else {
+					cm.createPage(project.getString("name"), category.getString("name"), parentName);
+				}
 				getFilesFromCategory(project, category);
 				getCategories(project, category.getString("name"), category.getString("id"),
 						categoriesArray);
@@ -124,13 +130,14 @@ public class FileMigrator extends JSONExtractor {
 					continue;
 				}
 
-				if (!fileWasUploaded(fileName, project.getString("name"), category.getString("name"))) {
+				if (!fileWasUploaded(fileName, project.getString("name"),
+						category.getString("name"))) {
 					dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
 							fileName);
 				} else {
-					System.out.println("File with name: "
+					System.out.println("File with name: \""
 							+ (isMp4(fileName) ? cut.modifyName(fileName, 1) : fileName)
-							+ " has been already added to confluence. Im skipping it.");
+							+ "\" has been already added to confluence. I'm skipping it.");
 					continue;
 				}
 				uploadToConfluence(fileName, category.getString("name"), project.getString("name"));
@@ -140,25 +147,26 @@ public class FileMigrator extends JSONExtractor {
 
 	public boolean fileWasUploaded(String fileName, String projectName, String categoryName) {
 		boolean mp4 = isMp4(fileName);
-		if (!cm.fileWasUploadedBefore(projectName, categoryName, mp4 ? cut.modifyName(fileName, 1) : fileName)) {
+		if (!cm.fileWasUploadedBefore(projectName, categoryName, mp4 ? cut.modifyName(fileName, 1)
+				: fileName)) {
 			return false;
 		}
 		return true;
 	}
 
-	private boolean uploadToConfluence(String fileName, String categoryName, String projectName) {
+	private void uploadToConfluence(String fileName, String categoryName, String projectName) {
 		if (isMp4(fileName)) {
 			System.out.println("MP4 FILE DETECTED");
 			mp4File(projectName, categoryName, fileName);
 		} else {
 			boolean fileUploaded = false;
 			int counter = 0;
-			while (!fileUploaded && counter <= 6) {
+			while (!fileUploaded && counter <= ATTEMPTS_TO_UPLOAD) {
 				cm.addAttatchmentToPage(projectName, categoryName, fileName);
 				fileUploaded = cm.fileWasUploadedBefore(projectName, categoryName, fileName);
 				System.out.println("File uploaded [" + fileUploaded + "]");
 				counter++;
-				if (counter == 7) {
+				if (counter == ATTEMPTS_TO_UPLOAD+1) {
 					notUploadedFiles.add(fileName);
 					System.out.println("NOT UPLOADED FILES: ");
 					for (int j = 0; j < notUploadedFiles.size(); j++) {
@@ -167,7 +175,6 @@ public class FileMigrator extends JSONExtractor {
 				}
 			}
 		}
-		return true;
 	}
 
 	private boolean isMp4(String fileName) {
@@ -197,12 +204,13 @@ public class FileMigrator extends JSONExtractor {
 			boolean fileUploaded = false;
 			String modifiedFileName = cut.modifyName(fileName, i + 1);
 			int counter = 0;
-			while (!fileUploaded && counter <= 6) {
+			while (!fileUploaded && counter <= ATTEMPTS_TO_UPLOAD) {
 				cm.addAttatchmentToPage(projectName, categoryName, modifiedFileName);
-				fileUploaded = cm.fileWasUploadedBefore(projectName, categoryName, modifiedFileName);
+				fileUploaded = cm
+						.fileWasUploadedBefore(projectName, categoryName, modifiedFileName);
 				System.out.println("File uploaded [" + fileUploaded + "]");
 				counter++;
-				if (counter == 7) {
+				if (counter == ATTEMPTS_TO_UPLOAD+1) {
 					notUploadedFiles.add(modifiedFileName);
 					System.out.println("NOT UPLOADED FILES: ");
 					for (int j = 0; j < notUploadedFiles.size(); j++) {

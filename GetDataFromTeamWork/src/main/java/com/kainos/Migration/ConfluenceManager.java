@@ -53,7 +53,7 @@ public class ConfluenceManager {
 			System.out.println(output);
 			System.out.println(error);
 
-			if (output.contains("attachments in list"))
+			if (output.contains("in list"))
 				return output.substring(0, 1);
 
 		} catch (IOException e) {
@@ -102,12 +102,49 @@ public class ConfluenceManager {
 				.getAbsoluteFile().getAbsolutePath()));
 		// fileToUpload.delete();
 	}
+	
+	public void addNotebookToPage(String spaceName, String parentPageName, String pageName, String notebookContent) {
+		notebookContent = modifyNotebookContent(notebookContent);
+		if(parentPageName.equals(""))
+			parentPageName = "@home";
+		execCmd(ConfluenceCommand.addNotebook(spaceName, parentPageName, pageName, notebookContent));
+	}
 
+	
+	/**
+	 * 
+	 * @param spaceName
+	 * @param pageName
+	 * @param fileName
+	 * @return true if file was uploaded before, false if not
+	 */
 	public boolean fileWasUploadedBefore(String spaceName, String pageName, String fileName) {
 		if(pageName.equals(""))
 			pageName = "@home";
 		String s = execCmd(ConfluenceCommand.searchForFile(spaceName, pageName, regexModify(fileName)));
 		if (!s.equals("")) {
+			return Integer.parseInt(s) != 0;
+		}
+		return false;
+	}
+	
+	/**
+	 * 
+	 * @param spaceName
+	 * @param pageName
+	 * @return true if page exists in space, false if not
+	 */
+	public boolean pageWasCreatedBefore(String spaceName, String pageName) {
+		String s = execCmd(ConfluenceCommand.searchForPage(spaceName, pageName));
+		if(!s.equals("")) {
+			return Integer.parseInt(s) != 0;
+		}
+		return false;
+	}
+	
+	public boolean spaceWasCreatedBefore(String spaceName) {
+		String s = execCmd(ConfluenceCommand.searchSpace(spaceName));
+		if(!s.equals("")) {
 			return Integer.parseInt(s) != 0;
 		}
 		return false;
@@ -125,6 +162,12 @@ public class ConfluenceManager {
 		fileName = fileName.replaceAll("\\}", "\\\\}");
 		fileName = fileName.replaceAll("\\+", "\\\\+");
 		return fileName;
+	}
+	
+	private String modifyNotebookContent (String notebook) {
+		notebook = notebook.replaceAll("\"", "'");
+		notebook = notebook.replaceAll("line-height", "font-size");
+		return notebook;
 	}
 	
 
