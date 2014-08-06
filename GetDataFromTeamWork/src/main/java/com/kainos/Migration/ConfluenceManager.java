@@ -91,20 +91,22 @@ public class ConfluenceManager {
 	 * toPageName=@home
 	 * 
 	 * @param spaceName
-	 * @param toPageName
+	 * @param pageName
 	 * @param fileName
 	 */
-	public void addAttatchmentToPage(String spaceName, String toPageName, String fileName) {
+	public void addAttatchmentToPage(String spaceName, String pageName, String fileName) {
 		File fileToUpload = new File("./temp/" + fileName);
-		if (toPageName.equals(""))
-			toPageName = "@home";
-		execCmd(ConfluenceCommand.addAttatchmentToPage(spaceName, toPageName, fileToUpload
+		if (pageName.equals(""))
+			pageName = "@home";
+		execCmd(ConfluenceCommand.addAttatchmentToPage(spaceName, pageName, fileToUpload
 				.getAbsoluteFile().getAbsolutePath()));
 		// fileToUpload.delete();
 	}
 
-	public boolean fileWasUploadedBefore(String spaceName, String fileName) {
-		String s = execCmd(ConfluenceCommand.searchForFile(spaceName, regexModify(fileName)));
+	public boolean fileWasUploadedBefore(String spaceName, String pageName, String fileName) {
+		if(pageName.equals(""))
+			pageName = "@home";
+		String s = execCmd(ConfluenceCommand.searchForFile(spaceName, pageName, regexModify(fileName)));
 		if (!s.equals("")) {
 			return Integer.parseInt(s) != 0;
 		}

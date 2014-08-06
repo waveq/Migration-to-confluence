@@ -121,7 +121,7 @@ public class FileMigrator extends JSONExtractor {
 					continue;
 				}
 
-				if (!fileWasUploaded(fileName, project.getString("name"))) {
+				if (!fileWasUploaded(fileName, project.getString("name"), category.getString("name"))) {
 					dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
 							fileName);
 				} else {
@@ -135,9 +135,9 @@ public class FileMigrator extends JSONExtractor {
 		}
 	}
 
-	public boolean fileWasUploaded(String fileName, String projectName) {
+	public boolean fileWasUploaded(String fileName, String projectName, String categoryName) {
 		boolean mp4 = isMp4(fileName);
-		if (!cm.fileWasUploadedBefore(projectName, mp4 ? cut.modifyName(fileName, 1) : fileName)) {
+		if (!cm.fileWasUploadedBefore(projectName, categoryName, mp4 ? cut.modifyName(fileName, 1) : fileName)) {
 			return false;
 		}
 		return true;
@@ -152,7 +152,7 @@ public class FileMigrator extends JSONExtractor {
 			int counter = 0;
 			while (!fileUploaded && counter <= 6) {
 				cm.addAttatchmentToPage(projectName, categoryName, fileName);
-				fileUploaded = cm.fileWasUploadedBefore(projectName, fileName);
+				fileUploaded = cm.fileWasUploadedBefore(projectName, categoryName, fileName);
 				System.out.println("File uploaded [" + fileUploaded + "]");
 				counter++;
 				if (counter == 7) {
@@ -196,7 +196,7 @@ public class FileMigrator extends JSONExtractor {
 			int counter = 0;
 			while (!fileUploaded && counter <= 6) {
 				cm.addAttatchmentToPage(projectName, categoryName, modifiedFileName);
-				fileUploaded = cm.fileWasUploadedBefore(projectName, modifiedFileName);
+				fileUploaded = cm.fileWasUploadedBefore(projectName, categoryName, modifiedFileName);
 				System.out.println("File uploaded [" + fileUploaded + "]");
 				counter++;
 				if (counter == 7) {
