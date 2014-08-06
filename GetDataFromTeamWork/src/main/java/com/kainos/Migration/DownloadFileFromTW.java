@@ -21,6 +21,7 @@ public class DownloadFileFromTW {
 			long middle = System.currentTimeMillis();
 			fos = new FileOutputStream("temp/" + fileName);
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
 			System.out.println("Finish download " + fileName);
 			long after = System.currentTimeMillis();
 			System.out.println("Downloading time " + (double) (after - middle) / 1000 + " s");
@@ -31,10 +32,7 @@ public class DownloadFileFromTW {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-
 		}
 		return null;
 	}
-	
-
 }

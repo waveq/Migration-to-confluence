@@ -13,14 +13,19 @@ import java.util.Properties;
 public class Manager {
 	String teamworkApiToken;
 	String teamworkUrl;
-	JSONExtractor je;
+	FileMigrator fm;
 	private Properties prop = new Properties();
 	InputStream input;
 
 	public Manager() {
 		GetAndSetRequiredProperties();
-		je = new JSONExtractor(teamworkApiToken, teamworkUrl);
-		je.goThroughTree();
+		fm = new FileMigrator(teamworkApiToken, teamworkUrl);
+		fm.goThroughTree(JSONExtractor.FILE_CATEGORY);
+		
+		System.out.println("NOT UPLOADED FILES: ");
+		for(int j=0;j<fm.notUploadedFiles.size();j++) {
+			System.out.println(j + " " + fm.notUploadedFiles.get(j));
+		}
 	}
 
 	/**
@@ -43,11 +48,11 @@ public class Manager {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.contains("set server="))
-					line = line.replace("set server=", "set server=" + ConfluenceServer);
+					line = "set server=" + ConfluenceServer;
 				else if (line.contains("set username="))
-					line = line.replace("set username=", "set username=" + ConfluenceUserName);
+					line = "set username=" + ConfluenceUserName;
 				else if (line.contains("set password="))
-					line = line.replace("set password=", "set password=" + ConfluencePassword);
+					line = "set password=" + ConfluencePassword;
 				bw.write(line + "\n");
 			}
 		} catch (Exception e) {

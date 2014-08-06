@@ -21,8 +21,6 @@ public class ConfluenceManager {
 	 * @param cmd
 	 *            String contains Confluence command
 	 */
-	static int counter = 0;
-
 	private String execCmd(String cmd) {
 		try {
 			Process p = Runtime.getRuntime().exec(dirPath + cmd);
@@ -123,6 +121,7 @@ public class ConfluenceManager {
 		fileName = fileName.replaceAll("\\)", "\\\\)");
 		fileName = fileName.replaceAll("\\{", "\\\\{");
 		fileName = fileName.replaceAll("\\}", "\\\\}");
+		fileName = fileName.replaceAll("\\+", "\\\\+");
 		return fileName;
 	}
 	
