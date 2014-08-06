@@ -24,7 +24,10 @@ public class FileMigrator extends JSONExtractor {
 			"Nuvo framework introduction.zip.006", "Nuvo framework introduction.zip.005",
 			"Nuvo framework introduction.zip.004", "Nuvo framework introduction.zip.003",
 			"Nuvo framework introduction.zip.002", "Nuvo framework introduction.zip.001",
-			"Nuvo framework introduction.zip.000" };
+			"Nuvo framework introduction.zip.000", "Change Benefit Elections - Maxim Setup Call.AVI",
+			"Webinar.cptx", "Change Benefit Elections - Maxim Setup Call.wmv", "Sprint 4 Review Session.wmv",
+			"Scrum Developer Course - manual and reading.zip" 
+			};
 
 	public FileMigrator(String apiToken, String url) {
 		super(apiToken, url);
