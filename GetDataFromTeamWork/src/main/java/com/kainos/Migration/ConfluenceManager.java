@@ -152,6 +152,8 @@ public class ConfluenceManager {
 		if (pageName.equals(""))
 			pageName = "Home";
 		
+		pageName.replace(" ", "+");
+		
 		String url = "https://myconfluence.atlassian.net/wiki/rest/api/content?title="+pageName+"&spaceKey="+spaceName+"&expand=descendants";
 		JSONObject mainJson = downloadJSON(url);
 		JSONArray array = (JSONArray) mainJson.getJSONArray("results");
