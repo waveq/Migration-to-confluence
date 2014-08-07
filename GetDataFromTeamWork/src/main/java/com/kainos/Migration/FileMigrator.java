@@ -70,9 +70,9 @@ public class FileMigrator extends JSONExtractor {
 			JSONObject category = (JSONObject) i.next();
 
 			if (category.get("parent-id").equals(parentId)) {
-				if (cm.pageWasCreatedBefore(project.getString("name"), category.getString("name"))) {
+				if (cm.pageWasCreatedBefore(project.getString("name"), parentName, category.getString("name"))) {
 					System.out.println("Page with name: \"" + category.getString("name")
-							+ "\" already exists in confluence. Im skipping it.");
+							+ "\" and parent page \""+ parentName + "\" already exists in confluence. Im skipping it.");
 				} else {
 					cm.createPage(project.getString("name"), category.getString("name"), parentName);
 				}
@@ -103,10 +103,8 @@ public class FileMigrator extends JSONExtractor {
 		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(project.getString("id"));
 		JSONObject innerProject = (JSONObject) filesMainObject.get("project");
 		JSONArray filesArray = (JSONArray) innerProject.get("files");
-
 		Iterator k = filesArray.iterator();
 		while (k.hasNext()) {
-
 			JSONObject singleFile = (JSONObject) k.next();
 
 			if (category == null) {

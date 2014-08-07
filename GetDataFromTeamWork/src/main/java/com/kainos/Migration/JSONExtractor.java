@@ -105,8 +105,7 @@ public abstract class JSONExtractor {
 		String jsonString = "";
 		JSONObject json;
 		try {
-			String encoding = "Basic "
-					+ new String(Base64.encodeBase64(credentials.getBytes("UTF-8")), "UTF-8");
+			String encoding = new String(Base64.encodeBase64(credentials.getBytes("UTF-8")), "UTF-8");
 			URL url = new URL(this.urlBeginning + urlEnding);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");

@@ -17,27 +17,27 @@ public class NotebookMigrator extends JSONExtractor {
 		Iterator i = categoriesArray.iterator();
 
 		if (parentName.equals("")) {
-			getNotebooksFromCategory(project, null);
+			getNotebooksFromCategory(project, null, "");
 		}
 
 		while (i.hasNext()) {
 			JSONObject category = (JSONObject) i.next();
 
 			if (category.get("parent-id").equals(parentId)) {
-				if (cm.pageWasCreatedBefore(project.getString("name"), category.getString("name"))) {
+				if (cm.pageWasCreatedBefore(project.getString("name"), parentName, category.getString("name"))) {
 					System.out.println("Page with name: \"" + category.getString("name")
-							+ "\" already exists in confluence. Im skipping it.");
+							+ "\" and parent page \""+ parentName + "\" already exists in confluence. Im skipping it.");
 				} else {
 					cm.createPage(project.getString("name"), category.getString("name"), parentName);
 				}
-				getNotebooksFromCategory(project, category);
+				getNotebooksFromCategory(project, category, parentName);
 				getCategories(project, category.getString("name"), category.getString("id"),
 						categoriesArray);
 			}
 		}
 	}
 
-	public void getNotebooksFromCategory(JSONObject project, JSONObject category) {
+	public void getNotebooksFromCategory(JSONObject project, JSONObject category, String parentName) {
 		JSONObject notebooksMainObject = (JSONObject) getAllNotebooksFromProject(project
 				.getString("id"));
 		JSONObject innerProject = (JSONObject) notebooksMainObject.get("project");
@@ -62,27 +62,24 @@ public class NotebookMigrator extends JSONExtractor {
 				String notebookName = finalNotebookContent.getString("name");
 				String notebookContent = finalNotebookContent.getString("content");
 				
-				if (cm.pageWasCreatedBefore(project.getString("name"), notebookName)) {
+				if (cm.pageWasCreatedBefore(project.getString("name"), parentName, notebookName)) {
 					System.out.println("Notebook with name: \"" + notebookName
 							+ "\" already exists in confluence. Im skipping it.");
 					continue;
 				}
-				uploadNotebookToConfluence(project.getString("name"), category.getString("name"),
+				uploadNotebookToConfluence(project.getString("name"), category.getString("name"), parentName,
 						notebookName, notebookContent);
 			}
 		}
 	}
 
-	private void uploadNotebookToConfluence(String projectName, String categoryName,
+	private void uploadNotebookToConfluence(String projectName, String categoryName, String parentName,
 			String notebookName, String notebookContent) {
-		
-
-		
 		boolean notebookUploaded = false;
 		int counter = 0;
 		while(!notebookUploaded && counter <= ATTEMPTS_TO_UPLOAD) {
 			cm.addNotebookToPage(projectName, categoryName, notebookName, notebookContent);
-			notebookUploaded = cm.pageWasCreatedBefore(projectName, notebookName);
+			notebookUploaded = cm.pageWasCreatedBefore(projectName, parentName, notebookName);
 			System.out.println("Notebook was created [" + notebookUploaded + "]");
 			counter++;
 		}

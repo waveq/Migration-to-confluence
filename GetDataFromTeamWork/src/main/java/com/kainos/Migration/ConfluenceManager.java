@@ -4,6 +4,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Iterator;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
+
+import org.apache.commons.codec.binary.Base64;
 
 public class ConfluenceManager {
 
@@ -23,9 +33,9 @@ public class ConfluenceManager {
 	 */
 	private String execCmd(String cmd) {
 		try {
+			System.out.println(dirPath + cmd);
 			Process p = Runtime.getRuntime().exec(dirPath + cmd);
 			p.waitFor();
-			System.out.println(dirPath + cmd);
 			// OutputReaders:
 			return printOutput(p);
 
@@ -98,19 +108,39 @@ public class ConfluenceManager {
 		File fileToUpload = new File("./temp/" + fileName);
 		if (pageName.equals(""))
 			pageName = "@home";
+
 		execCmd(ConfluenceCommand.addAttatchmentToPage(spaceName, pageName, fileToUpload
 				.getAbsoluteFile().getAbsolutePath()));
 		// fileToUpload.delete();
 	}
-	
-	public void addNotebookToPage(String spaceName, String parentPageName, String pageName, String notebookContent) {
+
+	public void addNotebookToPage(String spaceName, String parentPageName, String pageName,
+			String notebookContent) {
 		notebookContent = modifyNotebookContent(notebookContent);
-		if(parentPageName.equals(""))
+		if (parentPageName.equals(""))
 			parentPageName = "@home";
-		execCmd(ConfluenceCommand.addNotebook(spaceName, parentPageName, pageName, notebookContent));
+
+		for (int i = 0; i <= notebookContent.length() / 8000; i++) {
+			if (i == 0) {
+				System.out.println("DODAJE PAGE");
+				execCmd(ConfluenceCommand.addNotebook(spaceName, parentPageName, pageName,
+						notebookSubstring(notebookContent, i)));
+			} else {
+				execCmd(ConfluenceCommand.editNotebook(spaceName, parentPageName, pageName,
+						notebookSubstring(notebookContent, i)));
+			}
+		}
 	}
 
-	
+	private String notebookSubstring(String notebook, int pt) {
+		int begin = pt * 7500;
+		int end = begin + 7500;
+		if (end > notebook.length()) {
+			end = notebook.length();
+		}
+		return notebook.substring(begin, end);
+	}
+
 	/**
 	 * 
 	 * @param spaceName
@@ -119,43 +149,100 @@ public class ConfluenceManager {
 	 * @return true if file was uploaded before, false if not
 	 */
 	public boolean fileWasUploadedBefore(String spaceName, String pageName, String fileName) {
-		if(pageName.equals(""))
-			pageName = "@home";
-		String s = execCmd(ConfluenceCommand.searchForFile(spaceName, pageName, regexModify(fileName)));
-		if (!s.equals("")) {
-			return Integer.parseInt(s) != 0;
+		if (pageName.equals(""))
+			pageName = "Home";
+		
+		String url = "https://myconfluence.atlassian.net/wiki/rest/api/content?title="+pageName+"&spaceKey="+spaceName+"&expand=descendants";
+		JSONObject mainJson = downloadJSON(url);
+		JSONArray array = (JSONArray) mainJson.getJSONArray("results");
+		JSONObject result = array.getJSONObject(0);
+		
+		JSONObject desc = result.getJSONObject("descendants");
+		JSONObject links = desc.getJSONObject("_links");
+		String descUrl = links.getString("self");
+		
+		JSONObject attachmentsMainJson = downloadJSON(descUrl+"?expand=attachment");
+		JSONObject attachment = attachmentsMainJson.getJSONObject("attachment");
+		
+		JSONObject links2 = attachment.getJSONObject("_links");
+		String descUrl2 = links2.getString("self");
+		
+		JSONObject attachmentsMainJson2 = downloadJSON(descUrl2+"?limit=100");
+		
+		JSONArray attachmentArray = attachmentsMainJson2.getJSONArray("results");
+		
+		Iterator i = attachmentArray.iterator();
+		while(i.hasNext()) {
+			JSONObject singleAttachment = (JSONObject) i.next();
+			String title = singleAttachment.getString("title");
+			if(fileName.equals(title)) {
+				return true;
+			}
 		}
 		return false;
 	}
-	
+
+	protected JSONObject downloadJSON(String jsonUrl) {
+		String credentials = "admin:tajnehaslo";
+		String jsonString = "";
+		JSONObject json;
+		try {
+			String encoding = new String(Base64.encodeBase64(credentials.getBytes("UTF-8")), "UTF-8");
+			URL url = new URL(jsonUrl);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Authorization", "Basic " + encoding);
+			conn.setRequestProperty("Accept", "application/json");
+
+			if (conn.getResponseCode() != 200) {
+				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+			}
+
+			BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+			jsonString = br.readLine();
+			conn.disconnect();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		json = (JSONObject) JSONSerializer.toJSON(jsonString);
+		return json;
+	}
+
 	/**
 	 * 
 	 * @param spaceName
 	 * @param pageName
 	 * @return true if page exists in space, false if not
 	 */
-	public boolean pageWasCreatedBefore(String spaceName, String pageName) {
-		String s = execCmd(ConfluenceCommand.searchForPage(spaceName, pageName));
-		if(!s.equals("")) {
+	public boolean pageWasCreatedBefore(String spaceName, String parentPageName, String pageName) {
+		if (parentPageName.equals(""))
+			parentPageName = "@home";
+		String s = execCmd(ConfluenceCommand.searchForPage(spaceName, parentPageName, pageName));
+		if (!s.equals("")) {
 			return Integer.parseInt(s) != 0;
 		}
 		return false;
 	}
-	
+
 	public boolean spaceWasCreatedBefore(String spaceName) {
 		String s = execCmd(ConfluenceCommand.searchSpace(spaceName));
-		if(!s.equals("")) {
+		if (!s.equals("")) {
 			return Integer.parseInt(s) != 0;
 		}
 		return false;
 	}
-	
+
 	/**
-	 * replace all ( and { with \( and \{ so regex in confluence CLI could find it.
+	 * replace all ( and { with \( and \{ so regex in confluence CLI could find
+	 * it.
+	 * 
 	 * @param fileName
 	 * @return
 	 */
-	private String regexModify (String fileName) {
+	private String regexModify(String fileName) {
 		fileName = fileName.replaceAll("\\(", "\\\\(");
 		fileName = fileName.replaceAll("\\)", "\\\\)");
 		fileName = fileName.replaceAll("\\{", "\\\\{");
@@ -163,13 +250,12 @@ public class ConfluenceManager {
 		fileName = fileName.replaceAll("\\+", "\\\\+");
 		return fileName;
 	}
-	
-	private String modifyNotebookContent (String notebook) {
+
+	private String modifyNotebookContent(String notebook) {
 		notebook = notebook.replaceAll("\"", "'");
 		notebook = notebook.replaceAll("line-height", "font-size");
 		return notebook;
 	}
-	
 
 	public void removeSpace(String spaceName) {
 		execCmd(ConfluenceCommand.removeSpace(spaceName));
