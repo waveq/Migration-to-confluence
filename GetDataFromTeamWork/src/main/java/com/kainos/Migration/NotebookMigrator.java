@@ -1,5 +1,6 @@
 package com.kainos.Migration;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import net.sf.json.JSONArray;
@@ -7,37 +8,13 @@ import net.sf.json.JSONObject;
 
 public class NotebookMigrator extends JSONExtractor {
 
+	public ArrayList<String> notUploadedNotebooks = new ArrayList<String>();
+	
 	public NotebookMigrator(String apiToken, String url) {
-		super(apiToken, url);
+		super(apiToken, url, NOTEBOOK_CATEGORY);
 	}
 
-	@Override
-	void getCategories(JSONObject project, String parentName, String parentId,
-			JSONArray categoriesArray) {
-		Iterator i = categoriesArray.iterator();
-
-		if (parentName.equals("")) {
-			getNotebooksFromCategory(project, null, "");
-		}
-
-		while (i.hasNext()) {
-			JSONObject category = (JSONObject) i.next();
-
-			if (category.get("parent-id").equals(parentId)) {
-				if (cm.pageWasCreatedBefore(project.getString("name"), parentName, category.getString("name"))) {
-					System.out.println("Page with name: \"" + category.getString("name")
-							+ "\" and parent page \""+ parentName + "\" already exists in confluence. Im skipping it.");
-				} else {
-					cm.createPage(project.getString("name"), category.getString("name"), parentName);
-				}
-				getNotebooksFromCategory(project, category, parentName);
-				getCategories(project, category.getString("name"), category.getString("id"),
-						categoriesArray);
-			}
-		}
-	}
-
-	public void getNotebooksFromCategory(JSONObject project, JSONObject category, String parentName) {
+	public void getObjectsFromCategory(JSONObject project, JSONObject category, String parentName) {
 		JSONObject notebooksMainObject = (JSONObject) getAllNotebooksFromProject(project
 				.getString("id"));
 		JSONObject innerProject = (JSONObject) notebooksMainObject.get("project");
@@ -62,7 +39,7 @@ public class NotebookMigrator extends JSONExtractor {
 				String notebookName = finalNotebookContent.getString("name");
 				String notebookContent = finalNotebookContent.getString("content");
 				
-				if (cm.pageWasCreatedBefore(project.getString("name"), parentName, notebookName)) {
+				if (cm.pageWasCreatedBefore(project.getString("name"), notebookName)) {
 					System.out.println("Notebook with name: \"" + notebookName
 							+ "\" already exists in confluence. Im skipping it.");
 					continue;
@@ -76,20 +53,27 @@ public class NotebookMigrator extends JSONExtractor {
 	private void uploadNotebookToConfluence(String projectName, String categoryName, String parentName,
 			String notebookName, String notebookContent) {
 		boolean notebookUploaded = false;
-		int counter = 0;
+		int counter = 1;
 		while(!notebookUploaded && counter <= ATTEMPTS_TO_UPLOAD) {
 			cm.addNotebookToPage(projectName, categoryName, notebookName, notebookContent);
-			notebookUploaded = cm.pageWasCreatedBefore(projectName, parentName, notebookName);
+			notebookUploaded = cm.pageWasCreatedBefore(projectName, notebookName);
 			System.out.println("Notebook was created [" + notebookUploaded + "]");
 			counter++;
+			if (counter == ATTEMPTS_TO_UPLOAD+1) {
+				notUploadedNotebooks.add(notebookName);
+				System.out.println("NOT UPLOADED NOTEBOOKS: ");
+				for (int j = 0; j < notUploadedNotebooks.size(); j++) {
+					System.out.println(j + " " + notUploadedNotebooks.get(j));
+				}
+			}
 		}
 	}
 
 	private JSONObject getAllNotebooksFromProject(String projectId) {
-		return downloadJSON("projects/" + projectId + "/notebooks.json");
+		return downloadJSON(urlBeginning+"projects/" + projectId + "/notebooks.json", credentials);
 	}
 
 	private JSONObject getFinalNotebookObject(String notebookId) {
-		return downloadJSON("notebooks/" + notebookId + ".json");
+		return downloadJSON(urlBeginning+"notebooks/" + notebookId + ".json", credentials);
 	}
 }

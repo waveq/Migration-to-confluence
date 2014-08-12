@@ -19,22 +19,43 @@ public class Manager {
 	InputStream input;
 
 	public Manager() {
+		long start = System.currentTimeMillis();
 		GetAndSetRequiredProperties();
+
+		nm = new NotebookMigrator(teamworkApiToken, teamworkUrl);
+		nm.goThroughTree(JSONExtractor.NOTEBOOK_CATEGORY);
+		long end1 = System.currentTimeMillis();
+		System.out.println("Finished uploading notebooks: " + (end1 - start) / 1000 / 60 + " minutes.");
+		notUploadedNotebooks();
+		
+		
 		fm = new FileMigrator(teamworkApiToken, teamworkUrl);
 		fm.goThroughTree(JSONExtractor.FILE_CATEGORY);
+		long end2 = System.currentTimeMillis();
+		notUploadedNotebooks();
+		notUploadedFiles();
 		
-//		nm = new NotebookMigrator(teamworkApiToken, teamworkUrl);
-//		nm.goThroughTree(JSONExtractor.NOTEBOOK_CATEGORY);
-//		
-		
+		System.out.println("Notebooks: "+ (end1 - start) / 1000 / 60 + " minutes.");
+		System.out.println("Files: "+ (end2 - end1) / 1000 / 60 + " minutes.");
+		System.out.println("Everything: "+ (end2 - start) / 1000 / 60 + " minutes." );
+	}
+	
+	private void notUploadedNotebooks() {
+		System.out.println("NOT UPLOADED NOTEBOOKS: ");
+		for (int j = 0; j < nm.notUploadedNotebooks.size(); j++) {
+			System.out.println(j + " " + nm.notUploadedNotebooks.get(j));
+		}
+	}
+	private void notUploadedFiles() {
 		System.out.println("NOT UPLOADED FILES: ");
-		for(int j=0;j<fm.notUploadedFiles.size();j++) {
+		for (int j = 0; j < fm.notUploadedFiles.size(); j++) {
 			System.out.println(j + " " + fm.notUploadedFiles.get(j));
 		}
 	}
 
 	/**
 	 * Set appropriate properties in .bat file
+	 * 
 	 * @param ConfluenceServer
 	 * @param ConfluenceUserName
 	 * @param ConfluencePassword
@@ -42,14 +63,19 @@ public class Manager {
 	private void SetProperiesInConfluenceFiles(String ConfluenceServer, String ConfluenceUserName,
 			String ConfluencePassword) {
 
-		String oldFileName = "confluence.bat";
-		String tmpFileName = "tmp_" + oldFileName;
+		File oldBat = new File("./confluence-cli-4.0.0-SNAPSHOT/confluence.bat");
+		File newBat = new File("./confluence-cli-4.0.0-SNAPSHOT/temp_confluence.bat");
 
 		BufferedReader br = null;
 		BufferedWriter bw = null;
+
 		try {
-			br = new BufferedReader(new FileReader(oldFileName));
-			bw = new BufferedWriter(new FileWriter(tmpFileName));
+			if (!newBat.exists()) {
+				newBat.createNewFile();
+			}
+
+			br = new BufferedReader(new FileReader(oldBat.getAbsoluteFile()));
+			bw = new BufferedWriter(new FileWriter(newBat.getAbsoluteFile()));
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.contains("set server="))
@@ -61,33 +87,24 @@ public class Manager {
 				bw.write(line + "\n");
 			}
 		} catch (Exception e) {
-			return;
+			e.printStackTrace();
 		} finally {
 			try {
 				if (br != null)
 					br.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try {
 				if (bw != null)
 					bw.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		// Once everything is complete, delete old file..
-		File oldFile = new File(oldFileName);
-		oldFile.delete();
-
-		// And rename tmp file's name to old file name
-		File newFile = new File(tmpFileName);
-		newFile.renameTo(oldFile);
-
+		oldBat.delete();
+		newBat.renameTo(oldBat);
 	}
 
 	/**
-	 * Initialize properties from file config.properties and set it in properties and .bat file
+	 * Initialize properties from file config.properties and set it in
+	 * properties and .bat file
 	 */
 	public void GetAndSetRequiredProperties() {
 		try {
@@ -95,7 +112,8 @@ public class Manager {
 			prop.load(input);
 			teamworkApiToken = prop.getProperty("apikey");
 			teamworkUrl = prop.getProperty("addres");
-			SetProperiesInConfluenceFiles(prop.getProperty("server"), prop.getProperty("user"), prop.getProperty("password"));
+			SetProperiesInConfluenceFiles(prop.getProperty("server"), prop.getProperty("user"),
+					prop.getProperty("password"));
 
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -109,5 +127,4 @@ public class Manager {
 			}
 		}
 	}
-
 }

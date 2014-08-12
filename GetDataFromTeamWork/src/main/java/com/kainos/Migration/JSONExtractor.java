@@ -1,41 +1,34 @@
 package com.kainos.Migration;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Iterator;
-
-import org.apache.commons.codec.binary.Base64;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
 
-public abstract class JSONExtractor {
+public abstract class JSONExtractor extends JSONDownloader {
 
-	private String urlBeginning;
-	private String credentials;
+	protected String urlBeginning;
+	protected String credentials;
 
 	static final int FILE_CATEGORY = 1;
 	static final int NOTEBOOK_CATEGORY = 2;
 	protected ConfluenceManager cm;
 	
+	private int chosenCategory;
+	
 	/**
-	 * how many times program is retrying to upload file/notebook after fail.
+	 * how many times program is trying to upload file/notebook after fail.
 	 */
-	protected static final int ATTEMPTS_TO_UPLOAD = 4;
+	protected static final int ATTEMPTS_TO_UPLOAD = 3;
 
-	public JSONExtractor(String apiToken, String url) {
+	public JSONExtractor(String apiToken, String url, int category) {
 		this.credentials = apiToken + ":X";
 		this.urlBeginning = url;
+		chosenCategory = category;
 		cm = new ConfluenceManager();
 	}
 
-	abstract void getCategories(JSONObject project, String parentName, String parentId,
-			JSONArray categoriesArray);
+	abstract void getObjectsFromCategory(JSONObject project, JSONObject category, String parentName);
 
 	/**
 	 * Iterates through projects array.
@@ -69,6 +62,91 @@ public abstract class JSONExtractor {
 			getCategories(singleProject, "", "", categoriesArray);
 		}
 	}
+	
+	
+	/**
+	 * Recursive method. If passed parentId is equals to current category's
+	 * parentId then that category is created in Confluence via
+	 * ConfluenceManager's CreatePage method. After that getCategories method is
+	 * called and then method calls itself and passes current category id and
+	 * name as parentId and parentName.
+	 * 
+	 * If parentName equals "" it means it first invoke of method and we have to
+	 * download and upload files that have no parent category.
+	 * 
+	 * @param project
+	 *            - object of project that is currently migrated.
+	 * @param parentName
+	 *            - name of parent of current category. First parentName equals
+	 *            "".
+	 * @param parentId
+	 *            - id of parent of current category. First parentId equals "".
+	 * @param categoriesArray
+	 *            - Array retrieved from categoriesMainObject. Contains list of
+	 *            all categories.
+	 */
+	protected void getCategories(JSONObject project, String parentName, String parentId,
+			JSONArray categoriesArray) {
+		Iterator i = categoriesArray.iterator();
+
+		if (parentName.equals("")) {
+			getObjectsFromCategory(project, null, "");
+		}
+
+		while (i.hasNext()) {
+			JSONObject category = (JSONObject) i.next();
+
+			if (category.get("parent-id").equals(parentId)) {
+				if (cm.pageWasCreatedBefore(project.getString("name"), category.getString("name"))) {
+					category = pageWasCreatedBefore(project, category, parentName);
+				}
+				else {
+					cm.createPage(project.getString("name"), category.getString("name"), parentName, chosenCategory);
+				}
+				getObjectsFromCategory(project, category, "");
+				getCategories(project, category.getString("name"), category.getString("id"),
+						categoriesArray);
+			}
+		}
+	}
+	
+	private JSONObject pageWasCreatedBefore(JSONObject project, JSONObject category, String parentName) {
+		System.out.println("Page with name: \"" + category.getString("name") + "\" was created before. "
+				+ "I'm checking if parent of the old and the new page is the same.");
+		if(cm.theSamePage(project.getString("name"), parentName, category.getString("name"))) {
+			System.out.println("Page with name: \"" + category.getString("name")
+			+ "\" and parent page \""+ parentName + "\" already exists in confluence. I'm skipping it.");
+		}
+		else {
+			category = catWithSameNameDifferentParent(project, category, parentName);
+		}
+		return category;
+	}
+	
+	/**
+	 * Method is checking if passed category with passed parentName already exists on confluence.
+	 * @param project
+	 * @param category
+	 * @param parentName
+	 * @return
+	 */
+	private JSONObject catWithSameNameDifferentParent(JSONObject project, JSONObject category, String parentName) {
+		String tempParent = parentName;
+		if(parentName.equals("")) {
+			tempParent = "Home";
+		}
+		String categoryName = cm.createNameWithAncestor(tempParent, category.getString("name"));
+		category.put("name", categoryName);
+		if (cm.pageWasCreatedBefore(project.getString("name"), categoryName)) {
+			System.out.println("Page with name: \"" + categoryName
+					+ "\" and parent page \""+ parentName + "\" already exists in confluence. Im skipping it.");
+		}
+		else {
+			cm.createPage(project.getString("name"), categoryName, parentName, chosenCategory);
+		}
+		return category;
+	}
+	
 
 	/**
 	 * Returns JSONObject that contains all categories from project which id was
@@ -79,9 +157,9 @@ public abstract class JSONExtractor {
 	 */
 	private JSONObject getAllCategoriesFromProject(String projectId, int categoryType) {
 		if (categoryType == 1)
-			return downloadJSON("projects/" + projectId + "/filecategories.json");
+			return downloadJSON(urlBeginning+"projects/" + projectId + "/filecategories.json", credentials);
 		else if (categoryType == 2)
-			return downloadJSON("projects/" + projectId + "/notebookcategories.json");
+			return downloadJSON(urlBeginning+"projects/" + projectId + "/notebookcategories.json", credentials);
 		return null;
 	}
 
@@ -91,41 +169,8 @@ public abstract class JSONExtractor {
 	 * @return
 	 */
 	private JSONObject getAllProjects() {
-		return downloadJSON("projects.json");
+		return downloadJSON(urlBeginning+"projects.json", credentials);
 	}
 
-	/**
-	 * Connects to URL which contains JSON and returns it.
-	 * 
-	 * @param urlEnding
-	 *            - end of url from which you want to download JSON
-	 * @return JSONObject
-	 */
-	protected JSONObject downloadJSON(String urlEnding) {
-		String jsonString = "";
-		JSONObject json;
-		try {
-			String encoding = new String(Base64.encodeBase64(credentials.getBytes("UTF-8")), "UTF-8");
-			URL url = new URL(this.urlBeginning + urlEnding);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestMethod("GET");
-			conn.setRequestProperty("Authorization", "Basic " + encoding);
-			conn.setRequestProperty("Accept", "application/json");
-
-			if (conn.getResponseCode() != 200) {
-				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-			}
-
-			BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-
-			jsonString = br.readLine();
-			conn.disconnect();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		json = (JSONObject) JSONSerializer.toJSON(jsonString);
-		return json;
-	}
+	
 }

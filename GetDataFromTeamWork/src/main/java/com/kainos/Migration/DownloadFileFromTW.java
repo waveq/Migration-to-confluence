@@ -13,7 +13,6 @@ public class DownloadFileFromTW {
 	private FileOutputStream fos;
 
 	public String DownloadFileFrom(String Url, String fileName) {
-
 		try {
 			website = new URL(Url);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());

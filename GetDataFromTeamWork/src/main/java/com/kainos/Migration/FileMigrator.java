@@ -21,66 +21,19 @@ public class FileMigrator extends JSONExtractor {
 	public ArrayList<String> notUploadedFiles = new ArrayList<String>();
 
 	private String[] ignoreFiles = { "Smart application images.tar.gz",
-			"Nuvo framework introduction.zip.008", "Nuvo framework introduction.zip.007",
-			"Nuvo framework introduction.zip.006", "Nuvo framework introduction.zip.005",
-			"Nuvo framework introduction.zip.004", "Nuvo framework introduction.zip.003",
-			"Nuvo framework introduction.zip.002", "Nuvo framework introduction.zip.001",
-			"Nuvo framework introduction.zip.000",
+			"Nuvo framework introduction.zip.001", "Nuvo framework introduction.zip.002",
+			"Nuvo framework introduction.zip.003", "Nuvo framework introduction.zip.004",
+			"Nuvo framework introduction.zip.005", "Nuvo framework introduction.zip.006",
+			"Nuvo framework introduction.zip.007", "Nuvo framework introduction.zip.008",
 			"Change Benefit Elections - Maxim Setup Call.AVI", "Webinar.cptx",
 			"Change Benefit Elections - Maxim Setup Call.wmv", "Sprint 4 Review Session.wmv",
-			"Scrum Developer Course - manual and reading.zip" };
+			"Scrum Developer Course - manual and reading.zip", "Integration Testing Basics.mp4",
+			"Security Principles and Best Practices for Developers.mp4"};
 
 	public FileMigrator(String apiToken, String url) {
-		super(apiToken, url);
+		super(apiToken, url, FILE_CATEGORY);
 		cut = new Cut("", "");
 		dfftw = new DownloadFileFromTW();
-	}
-
-	/**
-	 * Recursive method. If passed parentId is equals to current category's
-	 * parentId then that category is created in Confluence via
-	 * ConfluenceManager's CreatePage method. After that getCategories method is
-	 * called and then method calls itself and passes current category id and
-	 * name as parentId and parentName.
-	 * 
-	 * If parentName equals "" it means it first invoke of method and we have to
-	 * download and upload files that have no parent category.
-	 * 
-	 * @param project
-	 *            - object of project that is currently migrated.
-	 * @param parentName
-	 *            - name of parent of current category. First parentName equals
-	 *            "".
-	 * @param parentId
-	 *            - id of parent of current category. First parentId equals "".
-	 * @param categoriesArray
-	 *            - Array retrieved from categoriesMainObject. Contains list of
-	 *            all categories.
-	 */
-	@Override
-	public void getCategories(JSONObject project, String parentName, String parentId,
-			JSONArray categoriesArray) {
-		Iterator i = categoriesArray.iterator();
-
-		if (parentName.equals("")) {
-			getFilesFromCategory(project, null);
-		}
-
-		while (i.hasNext()) {
-			JSONObject category = (JSONObject) i.next();
-
-			if (category.get("parent-id").equals(parentId)) {
-				if (cm.pageWasCreatedBefore(project.getString("name"), parentName, category.getString("name"))) {
-					System.out.println("Page with name: \"" + category.getString("name")
-							+ "\" and parent page \""+ parentName + "\" already exists in confluence. Im skipping it.");
-				} else {
-					cm.createPage(project.getString("name"), category.getString("name"), parentName);
-				}
-				getFilesFromCategory(project, category);
-				getCategories(project, category.getString("name"), category.getString("id"),
-						categoriesArray);
-			}
-		}
 	}
 
 	/**
@@ -99,7 +52,7 @@ public class FileMigrator extends JSONExtractor {
 	 * 
 	 * 
 	 */
-	private void getFilesFromCategory(JSONObject project, JSONObject category) {
+	public void getObjectsFromCategory(JSONObject project, JSONObject category, String parentName) {
 		JSONObject filesMainObject = (JSONObject) getAllFilesFromProject(project.getString("id"));
 		JSONObject innerProject = (JSONObject) filesMainObject.get("project");
 		JSONArray filesArray = (JSONArray) innerProject.get("files");
@@ -128,6 +81,7 @@ public class FileMigrator extends JSONExtractor {
 					continue;
 				}
 
+				fileName = fileName.replaceAll("\\s{2,}", " ");
 				if (!fileWasUploaded(fileName, project.getString("name"),
 						category.getString("name"))) {
 					dfftw.DownloadFileFrom(finalFileContent.get("download-URL").toString(),
@@ -135,7 +89,7 @@ public class FileMigrator extends JSONExtractor {
 				} else {
 					System.out.println("File with name: \""
 							+ (isMp4(fileName) ? cut.modifyName(fileName, 1) : fileName)
-							+ "\" has been already added to confluence. I'm skipping it.");
+							+ "\" and parent page name \"" + category.getString("name") + "\" has been already added to confluence. I'm skipping it.");
 					continue;
 				}
 				uploadToConfluence(fileName, category.getString("name"), project.getString("name"));
@@ -158,7 +112,7 @@ public class FileMigrator extends JSONExtractor {
 			mp4File(projectName, categoryName, fileName);
 		} else {
 			boolean fileUploaded = false;
-			int counter = 0;
+			int counter = 1;
 			while (!fileUploaded && counter <= ATTEMPTS_TO_UPLOAD) {
 				cm.addAttatchmentToPage(projectName, categoryName, fileName);
 				fileUploaded = cm.fileWasUploadedBefore(projectName, categoryName, fileName);
@@ -201,7 +155,7 @@ public class FileMigrator extends JSONExtractor {
 		for (int i = 0; i < numberOfFiles; i++) {
 			boolean fileUploaded = false;
 			String modifiedFileName = cut.modifyName(fileName, i + 1);
-			int counter = 0;
+			int counter = 1;
 			while (!fileUploaded && counter <= ATTEMPTS_TO_UPLOAD) {
 				cm.addAttatchmentToPage(projectName, categoryName, modifiedFileName);
 				fileUploaded = cm
@@ -227,7 +181,7 @@ public class FileMigrator extends JSONExtractor {
 	 * @return
 	 */
 	private JSONObject getFinalFileObject(String fileId) {
-		return downloadJSON("files/" + fileId + ".json");
+		return downloadJSON(urlBeginning+"files/" + fileId + ".json", credentials);
 	}
 
 	/**
@@ -238,6 +192,6 @@ public class FileMigrator extends JSONExtractor {
 	 * @return
 	 */
 	private JSONObject getAllFilesFromProject(String projectId) {
-		return downloadJSON("projects/" + projectId + "/files.json");
+		return downloadJSON(urlBeginning+"projects/" + projectId + "/files.json", credentials);
 	}
 }
