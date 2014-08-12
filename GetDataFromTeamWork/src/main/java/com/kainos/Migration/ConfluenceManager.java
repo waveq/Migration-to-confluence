@@ -56,7 +56,7 @@ public class ConfluenceManager extends JSONDownloader {
 	 */
 	private String execCmd(String cmd) {
 		try {
-			System.out.println(dirPath + cmd);
+			System.out.println(cmd);
 			Process p = Runtime.getRuntime().exec(dirPath + cmd);
 			p.waitFor();
 			// OutputReaders:
@@ -83,8 +83,12 @@ public class ConfluenceManager extends JSONDownloader {
 			while ((line = stdInput.readLine()) != null) {
 				output += (line + "\n");
 			}
-			System.out.println(output);
-			System.out.println(error);
+			
+			if(!output.equals("")) 
+				System.out.println(output);
+			if(!error.equals("")) 
+				System.out.println(error);
+			
 
 			if (output.contains("in list"))
 				return output.substring(0, 1);
@@ -119,11 +123,13 @@ public class ConfluenceManager extends JSONDownloader {
 		if (chosenCategory == 1) {
 			execCmd(ConfluenceCommand.addNestedPageFile(spaceName, pageName, parentPageName));
 		}
-		if (chosenCategory == 2) {
+		else if (chosenCategory == 2) {
 			execCmd(ConfluenceCommand.addNestedPageNotebook(spaceName, pageName, parentPageName));
 		}
 		else {
 			System.out.println("### FATAL ERROR CHECK JSONEXTRACTOR.CHOSEN_CATEGORY ###");
+			System.out.println("page: "+pageName + " parentPage: "+ parentPageName +" chosenCategory: "+ chosenCategory);
+			System.out.println("##### ### #####");
 		}
 	}
 

@@ -18,6 +18,7 @@ public class FileMigrator extends JSONExtractor {
 
 	private DownloadFileFromTW dfftw;
 	private Cut cut;
+	private int globalFileCounter = 0;
 	public ArrayList<String> notUploadedFiles = new ArrayList<String>();
 
 	private String[] ignoreFiles = { "Smart application images.tar.gz",
@@ -80,6 +81,7 @@ public class FileMigrator extends JSONExtractor {
 				if (doContinue) {
 					continue;
 				}
+				System.out.println("<- File: #"+globalFileCounter++ +" ->");
 
 				fileName = fileName.replaceAll("\\s{2,}", " ");
 				if (!fileWasUploaded(fileName, project.getString("name"),
