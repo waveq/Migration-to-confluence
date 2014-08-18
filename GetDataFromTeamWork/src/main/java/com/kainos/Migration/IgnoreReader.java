@@ -9,11 +9,9 @@ import java.util.ArrayList;
 public class IgnoreReader {
 
 	public IgnoreReader() {
-
 	}
 
 	public ArrayList<String> getIgnoredObjects(String fileName) {
-//		fileName = "ignoredFiles.txt";
 		File file = new File(fileName);
 
 		BufferedReader br = null;

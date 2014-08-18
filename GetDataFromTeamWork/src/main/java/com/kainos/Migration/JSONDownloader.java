@@ -53,33 +53,6 @@ public abstract class JSONDownloader {
 		return json;
 	}
 
-	//
-	// protected void addNotebook(String passedUrl, String credentials) {
-	// try {
-	// String encoding = new
-	// String(Base64.encodeBase64(credentials.getBytes("UTF-8")), "UTF-8");
-	// URL url = new URL(passedUrl);
-	// HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-	// conn.setRequestMethod("POST");
-	// conn.setRequestProperty("Authorization", "Basic " + encoding);
-	// conn.setRequestProperty("Accept", "application/json");
-	//
-	// if (conn.getResponseCode() != 200) {
-	// throw new RuntimeException("Failed : HTTP error code : " +
-	// conn.getResponseCode());
-	// }
-	//
-	// BufferedReader br = new BufferedReader(new
-	// InputStreamReader((conn.getInputStream())));
-	//
-	// jsonString = br.readLine();
-	// conn.disconnect();
-	// } catch (MalformedURLException e) {
-	// e.printStackTrace();
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	// }
 	public void uploadNotebookPost(String passedUrl, String credentials, String json) throws IOException {
 		String urlParameters = json.toString();
 

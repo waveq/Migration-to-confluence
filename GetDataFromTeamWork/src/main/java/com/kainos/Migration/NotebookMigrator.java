@@ -57,7 +57,7 @@ public class NotebookMigrator extends JSONExtractor {
 					continue;
 				}
 
-				if (cm.pageWasCreatedBefore(project.getString("name"), notebookName)) {
+				if (cm.isPageInDownloadedList(notebookName)) {
 					System.out.println("Notebook with name: \"" + notebookName
 							+ "\" already exists in confluence. Im skipping it.");
 					continue;
@@ -76,6 +76,9 @@ public class NotebookMigrator extends JSONExtractor {
 			cm.addNotebookToPage(projectName, categoryName, notebookName, notebookContent);
 			notebookUploaded = cm.pageWasCreatedBefore(projectName, notebookName);
 			System.out.println("Notebook was created [" + notebookUploaded + "]");
+			if(notebookUploaded) {
+				cm.addNewPageToList(notebookName);
+			}
 			counter++;
 			if (counter == ATTEMPTS_TO_UPLOAD + 1) {
 				notUploadedNotebooks.add(notebookName);

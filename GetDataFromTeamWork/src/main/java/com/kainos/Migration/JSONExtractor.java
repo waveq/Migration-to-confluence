@@ -28,7 +28,6 @@ public abstract class JSONExtractor extends JSONDownloader {
 		chosenCategory = category;
 		cm = new ConfluenceManager();
 		ir = new IgnoreReader();
-	
 	}
 
 	abstract void getObjectsFromCategory(JSONObject project, JSONObject category, String parentName);
@@ -62,6 +61,8 @@ public abstract class JSONExtractor extends JSONDownloader {
 					singleProject.getString("id"), categoryType);
 			JSONArray categoriesArray = (JSONArray) categoriesMainObject.get("categories");
 
+			
+			cm.setUploadedPages(singleProject.getString("name"));
 			getCategories(singleProject, "", "", categoriesArray);
 		}
 	}
@@ -95,16 +96,21 @@ public abstract class JSONExtractor extends JSONDownloader {
 		if (parentName.equals("")) {
 			getObjectsFromCategory(project, null, "");
 		}
+		
 
 		while (i.hasNext()) {
 			JSONObject category = (JSONObject) i.next();
+			
 
 			if (category.get("parent-id").equals(parentId)) {
-				if (cm.pageWasCreatedBefore(project.getString("name"), category.getString("name"))) {
+				if (cm.isPageInDownloadedList(category.getString("name"))) {
 					category = pageWasCreatedBefore(project, category, parentName);
 				}
 				else {
 					cm.createPage(project.getString("name"), category.getString("name"), parentName, chosenCategory);
+					if(cm.pageWasCreatedBefore(project.getString("name"), category.getString("name"))) {
+						cm.addNewPageToList(category.getString("name"));
+					}
 				}
 				getObjectsFromCategory(project, category, "");
 				getCategories(project, category.getString("name"), category.getString("id"),
@@ -140,7 +146,7 @@ public abstract class JSONExtractor extends JSONDownloader {
 		}
 		String categoryName = cm.createNameWithAncestor(tempParent, category.getString("name"));
 		category.put("name", categoryName);
-		if (cm.pageWasCreatedBefore(project.getString("name"), categoryName)) {
+		if (cm.isPageInDownloadedList(categoryName)) {
 			System.out.println("Page with name: \"" + categoryName
 					+ "\" and parent page \""+ parentName + "\" already exists in confluence. Im skipping it.");
 		}

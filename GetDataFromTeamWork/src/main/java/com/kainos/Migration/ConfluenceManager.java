@@ -83,12 +83,11 @@ public class ConfluenceManager extends JSONDownloader {
 			while ((line = stdInput.readLine()) != null) {
 				output += (line + "\n");
 			}
-			
-			if(!output.equals("")) 
+
+			if (!output.equals(""))
 				System.out.println(output);
-			if(!error.equals("")) 
+			if (!error.equals(""))
 				System.out.println(error);
-			
 
 			if (output.contains("in list"))
 				return output.substring(0, 1);
@@ -122,13 +121,12 @@ public class ConfluenceManager extends JSONDownloader {
 
 		if (chosenCategory == 1) {
 			execCmd(ConfluenceCommand.addNestedPageFile(spaceName, pageName, parentPageName));
-		}
-		else if (chosenCategory == 2) {
+		} else if (chosenCategory == 2) {
 			execCmd(ConfluenceCommand.addNestedPageNotebook(spaceName, pageName, parentPageName));
-		}
-		else {
+		} else {
 			System.out.println("### FATAL ERROR CHECK JSONEXTRACTOR.CHOSEN_CATEGORY ###");
-			System.out.println("page: "+pageName + " parentPage: "+ parentPageName +" chosenCategory: "+ chosenCategory);
+			System.out.println("page: " + pageName + " parentPage: " + parentPageName
+					+ " chosenCategory: " + chosenCategory);
 			System.out.println("##### ### #####");
 		}
 	}
@@ -253,6 +251,48 @@ public class ConfluenceManager extends JSONDownloader {
 		}
 		downloadedPage = null;
 		return false;
+	}
+
+	private ArrayList<String> addedPages;
+	
+	public void addNewPageToList(String pageName) {
+		addedPages.add(pageName);
+	}
+	
+	public boolean isPageInDownloadedList(String pageName) {
+		pageName = pageName.trim();
+		for(String s : addedPages) {
+			System.out.println("# "+s+" # ==" +" # "+pageName+" #");
+			if(s.equals(pageName))
+				return true;
+		}
+		return false;
+	}
+
+	public void setUploadedPages(String spaceName) {
+		addedPages = new ArrayList<String>();
+
+		String url = server + "rest/api/content?spaceKey=" + spaceName;
+		JSONObject mainJson = downloadJSON(url, credentials);
+		JSONObject _links = mainJson.getJSONObject("_links");
+		String selfLink = _links.getString("self");
+
+		getAllPagesLimiter(selfLink, 0);
+		getAllPagesLimiter(selfLink, 1);
+	}
+
+	private void getAllPagesLimiter(String url, int part) {
+		String jsonurl = url + "?limit="+((part*100)+100)+"&start="+part*100+"";
+		System.out.println(jsonurl); 
+		JSONObject mainJson2 = downloadJSON(jsonurl, credentials);
+		JSONArray results = mainJson2.getJSONArray("results");
+
+		Iterator i = results.iterator();
+		while (i.hasNext()) {
+			JSONObject singlePage = (JSONObject) i.next();
+			String title = singlePage.getString("title");
+			addedPages.add(title);
+		}
 	}
 
 	/**
