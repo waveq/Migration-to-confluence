@@ -1,13 +1,9 @@
 GetDataFromTeamWork/target/
-GetDataFromTeamWork/.settings/
-GetDataFromTeamWork/.project
-GetDataFromTeamWork/.classpath
-GetDataFromTeamWork/config.properties
 GetDataFromTeamWork/temp/
+GetDataFromTeamWork/.project
 GetDataFromTeamWork/.settings/
 GetDataFromTeamWork/.classpath
 GetDataFromTeamWork/.project
-GetDataFromTeamWork/.classpath
 GetDataFromTeamWork/confluence-cli-4.0.0-SNAPSHOT
 GetDataFromTeamWork/confluence.bat
 GetDataFromTeamWork/config.properties
