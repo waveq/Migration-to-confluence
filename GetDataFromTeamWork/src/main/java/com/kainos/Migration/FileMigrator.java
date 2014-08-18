@@ -45,7 +45,7 @@ public class FileMigrator extends JSONExtractor {
 	}
 
 	/**
-	 * At the beginning method is getting array of files which belong to the
+	 * At the beginning method is getting array of files which belong to the 
 	 * passed project. Then iterates over the array and searches for files which
 	 * category-id is equals to passed category. If finds one downloads it with
 	 * ConfluenceManager's AddAttachmentToPage.
