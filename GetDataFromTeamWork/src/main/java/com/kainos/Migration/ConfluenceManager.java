@@ -272,26 +272,33 @@ public class ConfluenceManager extends JSONDownloader {
 	public void setUploadedPages(String spaceName) {
 		addedPages = new ArrayList<String>();
 
-		String url = server + "rest/api/content?spaceKey=" + spaceName;
-		JSONObject mainJson = downloadJSON(url, credentials);
-		JSONObject _links = mainJson.getJSONObject("_links");
-		String selfLink = _links.getString("self");
+		String url = server + "rest/api/content";
 
-		getAllPagesLimiter(selfLink, 0);
-		getAllPagesLimiter(selfLink, 1);
+		getAllPagesLimiter(spaceName, url, 0);
+		getAllPagesLimiter(spaceName, url, 1);
+		getAllPagesLimiter(spaceName, url, 2);
+		getAllPagesLimiter(spaceName, url, 3);
+		getAllPagesLimiter(spaceName, url, 4);
 	}
 
-	private void getAllPagesLimiter(String url, int part) {
-		String jsonurl = url + "?limit="+((part*100)+100)+"&start="+part*100+"";
+	private void getAllPagesLimiter(String spaceName, String url, int part) {
+		String jsonurl = url + "?limit="+(100)+"&start="+part*100+"";
 		System.out.println(jsonurl); 
 		JSONObject mainJson2 = downloadJSON(jsonurl, credentials);
 		JSONArray results = mainJson2.getJSONArray("results");
+		
 
 		Iterator i = results.iterator();
 		while (i.hasNext()) {
 			JSONObject singlePage = (JSONObject) i.next();
 			String title = singlePage.getString("title");
-			addedPages.add(title);
+			
+			JSONObject _expandable = singlePage.getJSONObject("_expandable");
+			String space = _expandable.getString("space");
+			
+			if(("/rest/api/space/" + spaceName).equals(space)) {
+				addedPages.add(title);
+			}
 		}
 	}
 
