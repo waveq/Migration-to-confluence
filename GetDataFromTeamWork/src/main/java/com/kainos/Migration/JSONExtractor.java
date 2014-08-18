@@ -13,6 +13,7 @@ public abstract class JSONExtractor extends JSONDownloader {
 	static final int FILE_CATEGORY = 1;
 	static final int NOTEBOOK_CATEGORY = 2;
 	protected ConfluenceManager cm;
+	protected IgnoreReader ir;
 	
 	private int chosenCategory;
 	
@@ -26,6 +27,8 @@ public abstract class JSONExtractor extends JSONDownloader {
 		this.urlBeginning = url;
 		chosenCategory = category;
 		cm = new ConfluenceManager();
+		ir = new IgnoreReader();
+	
 	}
 
 	abstract void getObjectsFromCategory(JSONObject project, JSONObject category, String parentName);

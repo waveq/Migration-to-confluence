@@ -19,17 +19,20 @@ public class Manager {
 	InputStream input;
 
 	public Manager() {
-		long start = System.currentTimeMillis();
 		GetAndSetRequiredProperties();
 
 		nm = new NotebookMigrator(teamworkApiToken, teamworkUrl);
+		fm = new FileMigrator(teamworkApiToken, teamworkUrl);
+	}
+	
+	public void go() {
+		long start = System.currentTimeMillis();
 		nm.goThroughTree(JSONExtractor.NOTEBOOK_CATEGORY);
 		long end1 = System.currentTimeMillis();
 		System.out.println("Finished uploading notebooks: " + (end1 - start) / 1000 / 60 + " minutes.");
 		notUploadedNotebooks();
 		
 		
-		fm = new FileMigrator(teamworkApiToken, teamworkUrl);
 		fm.goThroughTree(JSONExtractor.FILE_CATEGORY);
 		long end2 = System.currentTimeMillis();
 		notUploadedNotebooks();

@@ -18,23 +18,30 @@ public class FileMigrator extends JSONExtractor {
 
 	private DownloadFileFromTW dfftw;
 	private Cut cut;
-	private int globalFileCounter = 0;
+	private int globalFileCounter = 1;
 	public ArrayList<String> notUploadedFiles = new ArrayList<String>();
 
-	private String[] ignoreFiles = { "Smart application images.tar.gz",
-			"Nuvo framework introduction.zip.001", "Nuvo framework introduction.zip.002",
-			"Nuvo framework introduction.zip.003", "Nuvo framework introduction.zip.004",
-			"Nuvo framework introduction.zip.005", "Nuvo framework introduction.zip.006",
-			"Nuvo framework introduction.zip.007", "Nuvo framework introduction.zip.008",
-			"Change Benefit Elections - Maxim Setup Call.AVI", "Webinar.cptx",
-			"Change Benefit Elections - Maxim Setup Call.wmv", "Sprint 4 Review Session.wmv",
-			"Scrum Developer Course - manual and reading.zip", "Integration Testing Basics.mp4",
-			"Security Principles and Best Practices for Developers.mp4"};
+	private ArrayList<String> ignoreFiles;
+//		{ "Smart application images.tar.gz",
+//			"Nuvo framework introduction.zip.001", "Nuvo framework introduction.zip.002",
+//			"Nuvo framework introduction.zip.003", "Nuvo framework introduction.zip.004",
+//			"Nuvo framework introduction.zip.005", "Nuvo framework introduction.zip.006",
+//			"Nuvo framework introduction.zip.007", "Nuvo framework introduction.zip.008",
+//			"Change Benefit Elections - Maxim Setup Call.AVI", "Webinar.cptx",
+//			"Change Benefit Elections - Maxim Setup Call.wmv", "Sprint 4 Review Session.wmv",
+//			"Scrum Developer Course - manual and reading.zip", "Integration Testing Basics.mp4",
+//			"Security Principles and Best Practices for Developers.mp4"};
+	
+//	Security Principles and Best Practices for Developers.mp4
+	
+	private static final String IGNORED_FILES_FILE_NAME = "ignoredFiles";
 
 	public FileMigrator(String apiToken, String url) {
 		super(apiToken, url, FILE_CATEGORY);
 		cut = new Cut("", "");
 		dfftw = new DownloadFileFromTW();
+		ignoreFiles = ir.getIgnoredObjects(IGNORED_FILES_FILE_NAME);
+		System.out.println("Files that will not be uploaded to confluence:\n"+ignoreFiles);
 	}
 
 	/**
@@ -156,7 +163,13 @@ public class FileMigrator extends JSONExtractor {
 
 		for (int i = 0; i < numberOfFiles; i++) {
 			boolean fileUploaded = false;
-			String modifiedFileName = cut.modifyName(fileName, i + 1);
+			String modifiedFileName = cut.modifyName(fileName, i + 1);			
+			
+			if(cm.fileWasUploadedBefore(projectName, categoryName, modifiedFileName)) {
+				continue;
+			}
+
+			
 			int counter = 1;
 			while (!fileUploaded && counter <= ATTEMPTS_TO_UPLOAD) {
 				cm.addAttatchmentToPage(projectName, categoryName, modifiedFileName);

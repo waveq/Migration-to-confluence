@@ -114,31 +114,3 @@ public abstract class JSONDownloader {
 		}
 	}
 }
-			
-		
-//		try {
-//			String encoding = new String(Base64.encodeBase64(credentials.getBytes("UTF-8")),
-//					"UTF-8");
-//			URL url = new URL(passedUrl);
-//			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-//			connection.setDoOutput(true);
-//			connection.setDoInput(true);
-//			connection.setInstanceFollowRedirects(false);
-//			connection.setRequestMethod("POST");
-//			connection.setRequestProperty("Authorization", "Basic " + encoding);
-//			connection.setRequestProperty("Content-Type", "application/json");
-//			connection.setRequestProperty("Content-Length",
-//					"" + Integer.toString(urlParameters.getBytes().length));
-//			connection.setUseCaches(false);
-//	
-//			DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-//			wr.writeBytes(urlParameters);
-//			wr.flush();
-//			wr.close();
-//			connection.disconnect();
-//		} catch (MalformedURLException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
