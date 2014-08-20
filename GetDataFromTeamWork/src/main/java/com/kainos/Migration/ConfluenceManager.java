@@ -262,7 +262,6 @@ public class ConfluenceManager extends JSONDownloader {
 	public boolean isPageInDownloadedList(String pageName) {
 		pageName = pageName.trim();
 		for(String s : addedPages) {
-			System.out.println("# "+s+" # ==" +" # "+pageName+" #");
 			if(s.equals(pageName))
 				return true;
 		}

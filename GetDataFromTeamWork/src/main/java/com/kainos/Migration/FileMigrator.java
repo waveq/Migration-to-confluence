@@ -20,19 +20,9 @@ public class FileMigrator extends JSONExtractor {
 	private Cut cut;
 	private int globalFileCounter = 1;
 	public ArrayList<String> notUploadedFiles = new ArrayList<String>();
+	public ArrayList<String> uploadedFiles = new ArrayList<String>();
 
 	private ArrayList<String> ignoreFiles;
-//		{ "Smart application images.tar.gz",
-//			"Nuvo framework introduction.zip.001", "Nuvo framework introduction.zip.002",
-//			"Nuvo framework introduction.zip.003", "Nuvo framework introduction.zip.004",
-//			"Nuvo framework introduction.zip.005", "Nuvo framework introduction.zip.006",
-//			"Nuvo framework introduction.zip.007", "Nuvo framework introduction.zip.008",
-//			"Change Benefit Elections - Maxim Setup Call.AVI", "Webinar.cptx",
-//			"Change Benefit Elections - Maxim Setup Call.wmv", "Sprint 4 Review Session.wmv",
-//			"Scrum Developer Course - manual and reading.zip", "Integration Testing Basics.mp4",
-//			"Security Principles and Best Practices for Developers.mp4"};
-	
-//	Security Principles and Best Practices for Developers.mp4
 	
 	private static final String IGNORED_FILES_FILE_NAME = "ignoredFiles";
 
@@ -126,6 +116,8 @@ public class FileMigrator extends JSONExtractor {
 				cm.addAttatchmentToPage(projectName, categoryName, fileName);
 				fileUploaded = cm.fileWasUploadedBefore(projectName, categoryName, fileName);
 				System.out.println("File uploaded [" + fileUploaded + "]");
+				if(fileUploaded)
+					uploadedFiles.add(fileName);
 				counter++;
 				if (counter == ATTEMPTS_TO_UPLOAD+1) {
 					notUploadedFiles.add(fileName);
@@ -176,6 +168,8 @@ public class FileMigrator extends JSONExtractor {
 				fileUploaded = cm
 						.fileWasUploadedBefore(projectName, categoryName, modifiedFileName);
 				System.out.println("File uploaded [" + fileUploaded + "]");
+				if(fileUploaded)
+					uploadedFiles.add(modifiedFileName);
 				counter++;
 				if (counter == ATTEMPTS_TO_UPLOAD+1) {
 					notUploadedFiles.add(modifiedFileName);

@@ -9,6 +9,7 @@ import net.sf.json.JSONObject;
 public class NotebookMigrator extends JSONExtractor {
 
 	public ArrayList<String> notUploadedNotebooks = new ArrayList<String>();
+	public ArrayList<String> uploadedNotebooks = new ArrayList<String>();
 
 	private ArrayList<String> ignoreNotebooks;
 	
@@ -78,6 +79,7 @@ public class NotebookMigrator extends JSONExtractor {
 			System.out.println("Notebook was created [" + notebookUploaded + "]");
 			if(notebookUploaded) {
 				cm.addNewPageToList(notebookName);
+				uploadedNotebooks.add(notebookName);
 			}
 			counter++;
 			if (counter == ATTEMPTS_TO_UPLOAD + 1) {

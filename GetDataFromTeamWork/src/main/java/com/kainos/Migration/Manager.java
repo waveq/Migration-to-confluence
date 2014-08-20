@@ -38,21 +38,41 @@ public class Manager {
 		notUploadedNotebooks();
 		notUploadedFiles();
 		
+		System.out.println("######");
+		
+		uploadedFiles();
+		uploadedNotebooks();
+		
 		System.out.println("Notebooks: "+ (end1 - start) / 1000 / 60 + " minutes.");
 		System.out.println("Files: "+ (end2 - end1) / 1000 / 60 + " minutes.");
 		System.out.println("Everything: "+ (end2 - start) / 1000 / 60 + " minutes." );
+	}
+	
+	private void uploadedFiles() {
+		System.out.println("UPLOADED FILES: ");
+		for (int j = 0; j < fm.uploadedFiles.size(); j++) {
+			System.out.println(j + " " + fm.uploadedFiles.get(j));
+		}
+	}
+	
+	private void uploadedNotebooks() {
+		System.out.println("UPLOADED NOTEBOOKS: ");
+		for (int j = 0; j < nm.uploadedNotebooks.size(); j++) {
+			System.out.println(j + " " + nm.uploadedNotebooks.get(j));
+		}
+	}
+
+	private void notUploadedFiles() {
+		System.out.println("NOT UPLOADED FILES: ");
+		for (int j = 0; j < fm.notUploadedFiles.size(); j++) {
+			System.out.println(j + " " + fm.notUploadedFiles.get(j));
+		}
 	}
 	
 	private void notUploadedNotebooks() {
 		System.out.println("NOT UPLOADED NOTEBOOKS: ");
 		for (int j = 0; j < nm.notUploadedNotebooks.size(); j++) {
 			System.out.println(j + " " + nm.notUploadedNotebooks.get(j));
-		}
-	}
-	private void notUploadedFiles() {
-		System.out.println("NOT UPLOADED FILES: ");
-		for (int j = 0; j < fm.notUploadedFiles.size(); j++) {
-			System.out.println(j + " " + fm.notUploadedFiles.get(j));
 		}
 	}
 
