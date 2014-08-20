@@ -4,7 +4,7 @@
 Tool that downloads your files and notebooks from [Teamwork](https://www.teamwork.com/) and uploads them to [Confluence](https://confluence.atlassian.com/). 
 
 
-To make it work you have to clone repository, import it to eclipse and perform the following steps:
+To make it work you have to clone the repository, import it to eclipse and perform the following steps:
 
 1. Set your values in config.properties.
 
