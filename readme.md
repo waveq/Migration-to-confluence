@@ -1,7 +1,7 @@
 # Migration from Teamwork to Confluence
 
 
-Tool that downloads your files and notebooks from [Teamwork](https://www.teamwork.com/) and uploads them to [Confluence](https://confluence.atlassian.com/). 
+Tool that downloads your files, notebooks and representation of your category tree from [Teamwork](https://www.teamwork.com/) and uploads them to [Confluence](https://confluence.atlassian.com/). 
 
 
 To make it work you have to clone the repository, import it to eclipse and perform the following steps:
@@ -14,7 +14,7 @@ To make it work you have to clone the repository, import it to eclipse and perfo
 
 3. If you have mp4 files in your teamwork you have to set JDK 1.8 (32 bit!) otherwise library used to convert mp4 files will not work.
 
-    *Mp4 files are passed through converter to lower it's size. If video length is greater than 18 minutes it's cut into two or more parts.* 
+    *Mp4 files are passed through converter to lower their size. If video length is greater than 18 minutes it will cut into parts.* 
 
 Contact:
     
