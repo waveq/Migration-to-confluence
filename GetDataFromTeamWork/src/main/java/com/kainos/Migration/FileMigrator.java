@@ -19,8 +19,8 @@ public class FileMigrator extends JSONExtractor {
 	private DownloadFileFromTW dfftw;
 	private Cut cut;
 	private int globalFileCounter = 1;
-	public ArrayList<String> notUploadedFiles = new ArrayList<String>();
-	public ArrayList<String> uploadedFiles = new ArrayList<String>();
+	private ArrayList<String> notUploadedFiles = new ArrayList<String>();
+	private ArrayList<String> uploadedFiles = new ArrayList<String>();
 
 	private ArrayList<String> ignoreFiles;
 	
@@ -108,7 +108,7 @@ public class FileMigrator extends JSONExtractor {
 	private void uploadToConfluence(String fileName, String categoryName, String projectName) {
 		if (isMp4(fileName)) {
 			System.out.println("MP4 FILE DETECTED");
-			mp4File(projectName, categoryName, fileName);
+			uploadMp4File(projectName, categoryName, fileName);
 		} else {
 			boolean fileUploaded = false;
 			int counter = 1;
@@ -147,7 +147,7 @@ public class FileMigrator extends JSONExtractor {
 	 * @param categoryName
 	 * @param fileName
 	 */
-	private void mp4File(String projectName, String categoryName, String fileName) {
+	private void uploadMp4File(String projectName, String categoryName, String fileName) {
 		File f = new File("./temp/");
 		String path = f.getAbsolutePath() + "\\";
 		cut = new Cut(fileName, path);
@@ -181,6 +181,21 @@ public class FileMigrator extends JSONExtractor {
 			}
 		}
 	}
+	
+	public void printUploadedFiles() {
+		System.out.println("UPLOADED FILES: ");
+		for (int j = 0; j < uploadedFiles.size(); j++) {
+			System.out.println(j + " " + uploadedFiles.get(j));
+		}
+	}
+	
+	public void printNotUploadedFiles() {
+		System.out.println("NOT UPLOADED FILES: ");
+		for (int j = 0; j < notUploadedFiles.size(); j++) {
+			System.out.println(j + " " + notUploadedFiles.get(j));
+		}
+	}
+	
 
 	/**
 	 * Returns JSONObject that contains all informations (name, id, category-id,

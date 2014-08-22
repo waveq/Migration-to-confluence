@@ -285,7 +285,6 @@ public class ConfluenceManager extends JSONDownloader {
 		System.out.println(jsonurl); 
 		JSONObject mainJson2 = downloadJSON(jsonurl, credentials);
 		JSONArray results = mainJson2.getJSONArray("results");
-		
 
 		Iterator i = results.iterator();
 		while (i.hasNext()) {
@@ -377,20 +376,20 @@ public class ConfluenceManager extends JSONDownloader {
 	}
 
 	private String modifyNotebookContent(String notebook) {
-		// notebook = notebook.replaceAll("<div>", "");
-		// notebook = notebook.replaceAll("</div>", "");
-		// notebook = notebook.replaceAll("<a href=\".*\">", "");
-		// notebook = notebook.replaceAll("</a>", "");
-		// notebook = notebook.replaceAll("<p>", "");
-		// notebook = notebook.replaceAll("</p>", "");
-		// notebook = notebook.replaceAll("<br />", "");
+/*		 notebook = notebook.replaceAll("<div>", "");
+		 notebook = notebook.replaceAll("</div>", "");
+		 notebook = notebook.replaceAll("<a href=\".*\">", "");
+		 notebook = notebook.replaceAll("</a>", "");
+		 notebook = notebook.replaceAll("<p>", "");
+		 notebook = notebook.replaceAll("</p>", "");
+		 notebook = notebook.replaceAll("<br />", "");
+		 notebook = notebook.replaceAll("<span style=\".*\">", "");
+		 notebook = notebook.replaceAll("</span>", "");
+		 notebook = notebook.replaceAll("<strong>", "");
+		 notebook = notebook.replaceAll("</strong>", "");
+		 notebook = notebook.replaceAll("\\\\", "\\\\\\");*/
 		notebook = notebook.replaceAll("<br>", "<br />");
-		// notebook = notebook.replaceAll("\\\\", "\\\\\\");
 		notebook = notebook.replaceAll("\"", "\\\\\"");
-		// notebook = notebook.replaceAll("<span style=\".*\">", "");
-		// notebook = notebook.replaceAll("</span>", "");
-		// notebook = notebook.replaceAll("<strong>", "");
-		// notebook = notebook.replaceAll("</strong>", "");
 
 		notebook = notebook.replaceAll("\n", "").replace("\r", "");
 		return notebook;

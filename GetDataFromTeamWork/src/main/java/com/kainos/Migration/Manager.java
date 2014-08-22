@@ -11,12 +11,12 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class Manager {
-	String teamworkApiToken;
-	String teamworkUrl;
-	FileMigrator fm;
-	NotebookMigrator nm;
+	private String teamworkApiToken;
+	private String teamworkUrl;
+	private FileMigrator fm;
+	private NotebookMigrator nm;
 	private Properties prop = new Properties();
-	InputStream input;
+	private InputStream input;
 
 	public Manager() {
 		GetAndSetRequiredProperties();
@@ -24,56 +24,28 @@ public class Manager {
 		nm = new NotebookMigrator(teamworkApiToken, teamworkUrl);
 		fm = new FileMigrator(teamworkApiToken, teamworkUrl);
 	}
-	
+
 	public void go() {
 		long start = System.currentTimeMillis();
 		nm.goThroughTree(JSONExtractor.NOTEBOOK_CATEGORY);
-		long end1 = System.currentTimeMillis();
-		System.out.println("Finished uploading notebooks: " + (end1 - start) / 1000 / 60 + " minutes.");
-		notUploadedNotebooks();
+		long endNotebooks = System.currentTimeMillis();
+		System.out.println("Finished uploading notebooks: " + (endNotebooks - start) / 1000 / 60 + " minutes.");
+		nm.printNotUploadedNotebooks();
 		
 		
 		fm.goThroughTree(JSONExtractor.FILE_CATEGORY);
-		long end2 = System.currentTimeMillis();
-		notUploadedNotebooks();
-		notUploadedFiles();
+		long endFiles = System.currentTimeMillis();
+		nm.printNotUploadedNotebooks();
+		fm.printNotUploadedFiles();
 		
 		System.out.println("######");
 		
-		uploadedFiles();
-		uploadedNotebooks();
+		fm.printUploadedFiles();
+		nm.printUploadedNotebooks();
 		
-		System.out.println("Notebooks: "+ (end1 - start) / 1000 / 60 + " minutes.");
-		System.out.println("Files: "+ (end2 - end1) / 1000 / 60 + " minutes.");
-		System.out.println("Everything: "+ (end2 - start) / 1000 / 60 + " minutes." );
-	}
-	
-	private void uploadedFiles() {
-		System.out.println("UPLOADED FILES: ");
-		for (int j = 0; j < fm.uploadedFiles.size(); j++) {
-			System.out.println(j + " " + fm.uploadedFiles.get(j));
-		}
-	}
-	
-	private void uploadedNotebooks() {
-		System.out.println("UPLOADED NOTEBOOKS: ");
-		for (int j = 0; j < nm.uploadedNotebooks.size(); j++) {
-			System.out.println(j + " " + nm.uploadedNotebooks.get(j));
-		}
-	}
-
-	private void notUploadedFiles() {
-		System.out.println("NOT UPLOADED FILES: ");
-		for (int j = 0; j < fm.notUploadedFiles.size(); j++) {
-			System.out.println(j + " " + fm.notUploadedFiles.get(j));
-		}
-	}
-	
-	private void notUploadedNotebooks() {
-		System.out.println("NOT UPLOADED NOTEBOOKS: ");
-		for (int j = 0; j < nm.notUploadedNotebooks.size(); j++) {
-			System.out.println(j + " " + nm.notUploadedNotebooks.get(j));
-		}
+		System.out.println("Notebooks: "+ (endNotebooks - start) / 1000 / 60 + " minutes.");
+		System.out.println("Files: "+ (endFiles - endNotebooks) / 1000 / 60 + " minutes.");
+		System.out.println("Everything: "+ (endFiles - start) / 1000 / 60 + " minutes." );
 	}
 
 	/**

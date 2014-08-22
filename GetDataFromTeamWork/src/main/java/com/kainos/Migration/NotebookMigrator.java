@@ -8,8 +8,8 @@ import net.sf.json.JSONObject;
 
 public class NotebookMigrator extends JSONExtractor {
 
-	public ArrayList<String> notUploadedNotebooks = new ArrayList<String>();
-	public ArrayList<String> uploadedNotebooks = new ArrayList<String>();
+	private ArrayList<String> notUploadedNotebooks = new ArrayList<String>();
+	private ArrayList<String> uploadedNotebooks = new ArrayList<String>();
 
 	private ArrayList<String> ignoreNotebooks;
 	
@@ -89,6 +89,20 @@ public class NotebookMigrator extends JSONExtractor {
 					System.out.println(j + " " + notUploadedNotebooks.get(j));
 				}
 			}
+		}
+	}
+	
+	public void printUploadedNotebooks() {
+		System.out.println("UPLOADED NOTEBOOKS: ");
+		for (int j = 0; j < uploadedNotebooks.size(); j++) {
+			System.out.println(j + " " + uploadedNotebooks.get(j));
+		}
+	}
+	
+	public void printNotUploadedNotebooks() {
+		System.out.println("NOT UPLOADED NOTEBOOKS: ");
+		for (int j = 0; j < notUploadedNotebooks.size(); j++) {
+			System.out.println(j + " " + notUploadedNotebooks.get(j));
 		}
 	}
 
